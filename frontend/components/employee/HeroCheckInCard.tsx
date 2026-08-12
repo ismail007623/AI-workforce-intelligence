@@ -12,6 +12,7 @@ import type {
   CheckOutResponse,
   EmployeeSummary,
 } from "@/lib/types";
+import { LateReasonModal } from "@/components/employee/LateReasonModal";
 import {
   formatDuration,
   formatFullDate,
@@ -103,11 +104,18 @@ export function HeroCheckInCard({
   const [error, setError] = useState<string | null>(null);
   const [checkIn, setCheckIn] = useState<CheckInResponse | null>(null);
   const [checkOut, setCheckOut] = useState<CheckOutResponse | null>(null);
+  const [showLateReasonModal, setShowLateReasonModal] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
+
+  useEffect(() => {
+    if (summary?.late_reason_pending) {
+      setShowLateReasonModal(true);
+    }
+  }, [summary?.late_reason_pending]);
 
   const checkInTime = todayRecord?.check_in_time ?? checkIn?.check_in_time ?? null;
   const checkOutTime = todayRecord?.check_out_time ?? checkOut?.check_out_time ?? null;
@@ -123,6 +131,7 @@ export function HeroCheckInCard({
     summary?.today_status === "late" ||
     todayRecord?.check_in_status === "late" ||
     checkIn?.check_in_status === "late";
+  const reasonPending = summary?.late_reason_pending || checkIn?.requires_late_reason;
 
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["employee-summary", employeeId] });
@@ -138,6 +147,9 @@ export function HeroCheckInCard({
       setCheckIn(res);
       refresh();
       setPhase("idle");
+      if (res.requires_late_reason) {
+        setShowLateReasonModal(true);
+      }
     } catch (e) {
       setPhase("idle");
       setError(e instanceof ApiError ? e.message : "Check-in failed. Please try again.");
@@ -159,6 +171,15 @@ export function HeroCheckInCard({
   };
 
   return (
+    <>
+      <LateReasonModal
+        employeeId={employeeId}
+        open={showLateReasonModal}
+        onComplete={() => {
+          setShowLateReasonModal(false);
+          refresh();
+        }}
+      />
     <div className="hero-card hero-card-compact">
       <div className="relative flex items-start justify-between gap-3">
         <p className="text-[12px] font-medium leading-snug text-white/75">{formatFullDate()}</p>
@@ -174,7 +195,7 @@ export function HeroCheckInCard({
         </span>
       )}
 
-      {isCheckedIn && !isCheckingIn && (
+      {isCheckedIn && !isCheckingIn && !reasonPending && (
         <StatusBanner
           title="Checked in successfully"
           subtitle="You're all set. Have a productive day!"
@@ -218,7 +239,7 @@ export function HeroCheckInCard({
         <p className="text-[10px] leading-snug text-white/60">
           Office hours: 10:00 AM – 7:00 PM · Grace period until 10:15 AM
         </p>
-        {isCheckedIn && (
+        {isCheckedIn && !reasonPending && (
           <button
             type="button"
             onClick={handleCheckOut}
@@ -235,5 +256,6 @@ export function HeroCheckInCard({
         )}
       </div>
     </div>
+    </>
   );
 }

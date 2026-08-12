@@ -56,7 +56,7 @@ export default function HrDashboardPage() {
   });
   const deptQ = useQuery({
     queryKey: ["dashboard-departments"],
-    queryFn: api.getDepartmentStats,
+    queryFn: () => api.getDepartmentStats(),
     refetchInterval: 60_000,
   });
   const todayQ = useQuery({
@@ -73,7 +73,7 @@ export default function HrDashboardPage() {
   const yesterday: DailyTrendPoint | undefined = trend.length >= 2 ? trend.at(-2) : undefined;
 
   const checkedIn = (point?: DailyTrendPoint) =>
-    point ? point.present + point.late : undefined;
+    point ? point.present : undefined;
 
   const liveRecords: AttendanceRecord[] = [...(todayQ.data ?? [])]
     .filter((r) => r.check_in_time)
@@ -412,9 +412,19 @@ function ChartTooltip({
 
 function buildAttention(
   summary: { late: number; absent: number } | undefined,
-  depts: { department: string; lateness_rate: number; total_employees: number; present: number; late: number }[],
+  depts: {
+    department: string;
+    lateness_rate: number;
+    total_employees: number;
+    present: number;
+    late: number;
+    invalid_reasons?: number;
+    weak_reasons?: number;
+    department_risk_level?: string;
+  }[],
 ) {
   if (!summary) return [] as { text: string; level: string; cls: string }[];
+
   const items: { text: string; level: string; cls: string }[] = [];
 
   if (summary.absent > 0)
@@ -426,6 +436,24 @@ function buildAttention(
   if (summary.late > 0)
     items.push({
       text: `${summary.late} employee${summary.late !== 1 ? "s" : ""} arrived late today`,
+      level: "Medium",
+      cls: "bg-amber-100 text-amber-700",
+    });
+
+  const highRiskDept = depts.find((d) => d.department_risk_level?.toLowerCase() === "high");
+  if (highRiskDept)
+    items.push({
+      text: `${highRiskDept.department} flagged as high discipline risk (weak/invalid reasons)`,
+      level: "High",
+      cls: "bg-red-100 text-red-700",
+    });
+
+  const invalidHeavy = [...depts]
+    .filter((d) => (d.invalid_reasons ?? 0) > 0)
+    .sort((a, b) => (b.invalid_reasons ?? 0) - (a.invalid_reasons ?? 0))[0];
+  if (invalidHeavy && (invalidHeavy.invalid_reasons ?? 0) > 0)
+    items.push({
+      text: `${invalidHeavy.department} has ${invalidHeavy.invalid_reasons} invalid late reason${invalidHeavy.invalid_reasons !== 1 ? "s" : ""} today`,
       level: "Medium",
       cls: "bg-amber-100 text-amber-700",
     });

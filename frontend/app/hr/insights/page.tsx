@@ -18,8 +18,10 @@ import { Card, CardContent } from "@/components/ui/card";
 const PRESETS = [
   "Which employees have attendance issues this month?",
   "Which department has the highest lateness rate?",
-  "Are there any concerning attendance trends?",
-  "Who are the most punctual employees?",
+  "Which employees repeatedly submit weak reasons?",
+  "Who has the lowest reliability score?",
+  "Which departments have the most invalid late reasons?",
+  "Are there employees with detected reason patterns?",
   "What actions should HR take to improve attendance?",
 ];
 

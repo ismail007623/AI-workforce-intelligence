@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { LogOut, Menu, Search, X } from "lucide-react";
+import { LogOut, Menu, X } from "lucide-react";
 import { cn, formatFullDate, initials } from "@/lib/utils";
 import { useSession } from "@/lib/session";
 import { Logo } from "./Logo";
@@ -58,19 +58,19 @@ function NavLinks({
                   className={cn(
                     "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
                     active
-                      ? "bg-indigo-50 text-indigo-700"
+                      ? "bg-[var(--color-primary-xlight)] text-[var(--color-primary)]"
                       : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
                   )}
                 >
                   <Icon
                     className={cn(
                       "h-[18px] w-[18px] shrink-0",
-                      active ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600",
+                      active ? "text-[var(--color-primary)]" : "text-slate-400 group-hover:text-slate-600",
                     )}
                   />
                   <span className="flex-1">{item.label}</span>
                   {item.badge !== undefined && (
-                    <span className="rounded-full bg-indigo-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                    <span className="rounded-full bg-[var(--color-primary)] px-1.5 py-0.5 text-[10px] font-bold text-white">
                       {item.badge}
                     </span>
                   )}
@@ -202,15 +202,6 @@ export function AppShell({
           >
             <Menu className="h-5 w-5" />
           </button>
-
-          <div className="relative hidden max-w-md flex-1 md:block">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-text-muted)]" />
-            <input
-              type="search"
-              placeholder="Search employees, departments..."
-              className="h-9 w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg-page)] pl-9 pr-4 text-sm text-[var(--color-text-secondary)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary-light)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/15"
-            />
-          </div>
 
           <div className="ml-auto flex items-center gap-3">
             <span className="hidden text-sm font-medium text-[var(--color-text-muted)] sm:block">

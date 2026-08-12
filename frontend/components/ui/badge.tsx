@@ -11,7 +11,15 @@ type Variant =
   | "medium"
   | "high"
   | "neutral"
-  | "primary";
+  | "primary"
+  | "indexing"
+  | "policy_active"
+  | "replaced"
+  | "failed"
+  | "valid"
+  | "acceptable"
+  | "weak"
+  | "invalid";
 
 const variants: Record<Variant, string> = {
   present: "bg-[var(--color-success-light)] text-[var(--color-success)] ring-[var(--color-success)]/20",
@@ -25,6 +33,14 @@ const variants: Record<Variant, string> = {
   not_checked_in: "bg-[var(--color-primary-xlight)] text-[var(--color-text-muted)] ring-[var(--color-border)]",
   neutral: "bg-[var(--color-primary-xlight)] text-[var(--color-text-muted)] ring-[var(--color-border)]",
   primary: "bg-[var(--color-primary-xlight)] text-[var(--color-primary)] ring-[var(--color-primary)]/20",
+  indexing: "bg-[var(--color-primary-xlight)] text-[var(--color-policy-accent)] ring-[var(--color-policy-accent)]/20",
+  policy_active: "bg-[var(--color-success-light)] text-[var(--color-success)] ring-[var(--color-success)]/20",
+  replaced: "bg-[var(--color-primary-xlight)] text-[var(--color-text-muted)] ring-[var(--color-border)]",
+  failed: "bg-[var(--color-danger-light)] text-[var(--color-danger)] ring-[var(--color-danger)]/20",
+  valid: "bg-[var(--color-success-light)] text-[var(--color-success)] ring-[var(--color-success)]/20",
+  acceptable: "bg-[var(--color-primary-xlight)] text-[var(--color-primary)] ring-[var(--color-primary)]/20",
+  weak: "bg-[var(--color-warning-light)] text-[#d4a017] ring-[var(--color-warning)]/30",
+  invalid: "bg-[var(--color-danger-light)] text-[var(--color-danger)] ring-[var(--color-danger)]/20",
 };
 
 export function Badge({

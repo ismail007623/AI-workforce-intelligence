@@ -22,6 +22,28 @@ export function formatDate(iso: string | null | undefined): string {
   });
 }
 
+export function formatDateTime(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
+export function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+export function policyDisplayName(filename: string): string {
+  return filename.replace(/\.[^.]+$/, "").replace(/[-_]/g, " ");
+}
+
 export function formatFullDate(date: Date = new Date()): string {
   return date.toLocaleDateString("en-US", {
     weekday: "long",

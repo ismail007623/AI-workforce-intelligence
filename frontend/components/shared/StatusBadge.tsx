@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 
 const LABELS: Record<string, string> = {
-  present: "Present",
+  present: "On Time",
   late: "Late",
   absent: "Absent",
   early_left: "Early Leave",

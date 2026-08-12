@@ -37,6 +37,7 @@ export const employeeNav: NavSection[] = [
       { label: "Check In / Out", icon: LogIn, href: "/employee" },
       { label: "My Attendance", icon: ClipboardList, href: "/employee/history" },
       { label: "My Summary", icon: BarChart3, href: "/employee/summary" },
+      { label: "Policy Assistant", icon: ShieldQuestion, href: "/employee/policy-chat" },
     ],
   },
   {
@@ -76,7 +77,7 @@ export const hrNav: NavSection[] = [
   {
     title: "Administration",
     items: [
-      { label: "Attendance Policy", icon: ShieldQuestion, href: "/hr/policy" },
+      { label: "Company Policy", icon: ShieldQuestion, href: "/hr/policy" },
       { label: "Users & Roles", icon: UserCog, comingSoon: true },
       { label: "Settings", icon: Settings, comingSoon: true },
     ],

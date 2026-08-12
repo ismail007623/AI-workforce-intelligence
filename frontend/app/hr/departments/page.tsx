@@ -1,112 +1,117 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Download, Filter, RefreshCw } from "lucide-react";
 import { api } from "@/lib/api";
+import type { DepartmentStats } from "@/lib/types";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { Card, CardContent } from "@/components/ui/card";
-import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
-import { ErrorState, LoadingTable } from "@/components/shared/states";
+import { ErrorState } from "@/components/shared/states";
+import { DeptKPICards } from "@/components/hr/departments/DeptKPICards";
+import { DeptCards } from "@/components/hr/departments/DeptCards";
+import { DeptDrawer } from "@/components/hr/departments/DeptDrawer";
+
+type SortBy = "late_count" | "attendance" | "risk";
+
+const SORT_OPTIONS: { value: SortBy; label: string }[] = [
+  { value: "late_count", label: "Most Late" },
+  { value: "attendance", label: "Lowest Attendance" },
+  { value: "risk", label: "Highest Risk" },
+];
 
 export default function DepartmentsPage() {
-  const { data = [], isLoading, isError } = useQuery({
-    queryKey: ["dashboard-departments"],
-    queryFn: api.getDepartmentStats,
+  const [sortBy, setSortBy] = useState<SortBy>("late_count");
+  const [selectedDept, setSelectedDept] = useState<DepartmentStats | null>(null);
+
+  const { data = [], isLoading, isError, refetch, isFetching } = useQuery({
+    queryKey: ["dashboard-departments", sortBy],
+    queryFn: () => api.getDepartmentStats(sortBy),
     refetchInterval: 60_000,
   });
+
+  const headerActions = (
+    <div className="flex flex-wrap items-center gap-2">
+      <button
+        type="button"
+        onClick={() => refetch()}
+        disabled={isFetching}
+        className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--color-border)] bg-white text-[var(--color-text-muted)] shadow-sm transition-colors hover:border-[var(--color-primary-light)] hover:text-[var(--color-primary)] disabled:opacity-40"
+        aria-label="Refresh"
+      >
+        <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`} />
+      </button>
+      <button
+        type="button"
+        className="flex items-center gap-1.5 rounded-xl border border-[var(--color-border)] bg-white px-3.5 py-2 text-[13px] font-medium text-[var(--color-text-secondary)] shadow-sm transition-colors hover:border-[var(--color-primary-light)]"
+      >
+        <Filter className="h-3.5 w-3.5" />
+        Filter
+      </button>
+      <button
+        type="button"
+        className="flex items-center gap-1.5 rounded-xl border border-[var(--color-border)] bg-white px-3.5 py-2 text-[13px] font-medium text-[var(--color-text-secondary)] shadow-sm transition-colors hover:border-[var(--color-primary-light)]"
+      >
+        <Download className="h-3.5 w-3.5" />
+        Export
+      </button>
+    </div>
+  );
+
+  if (isError) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Departments"
+          description="Monitor department attendance, punctuality, and workforce risk across the organization."
+        />
+        <ErrorState />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Departments"
-        description="Attendance breakdown and lateness rate by department."
+        description="Monitor department attendance, punctuality, and workforce risk across the organization."
+        action={headerActions}
       />
 
-      {isLoading ? (
-        <Card>
-          <CardContent className="p-3">
-            <LoadingTable rows={5} />
-          </CardContent>
-        </Card>
-      ) : isError ? (
-        <ErrorState />
-      ) : (
-        <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {data.map((d) => {
-              const checkedIn = d.present;
-              const rate = d.total_employees
-                ? Math.round((checkedIn / d.total_employees) * 100)
-                : 0;
-              return (
-                <Card key={d.department}>
-                  <CardContent className="p-5">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-base font-semibold text-slate-900">{d.department}</h3>
-                      <span className="text-sm font-bold text-indigo-600">{rate}%</span>
-                    </div>
-                    <p className="mt-0.5 text-xs text-slate-400">
-                      {checkedIn}/{d.total_employees} checked in
-                    </p>
-                    <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-100">
-                      <div
-                        className="h-full rounded-full bg-indigo-500 transition-all"
-                        style={{ width: `${rate}%` }}
-                      />
-                    </div>
-                    <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-                      <div className="rounded-lg bg-emerald-50 py-2">
-                        <p className="text-sm font-bold text-emerald-600">{d.present}</p>
-                        <p className="text-[10px] font-medium text-emerald-600/70">Present</p>
-                      </div>
-                      <div className="rounded-lg bg-amber-50 py-2">
-                        <p className="text-sm font-bold text-amber-600">{d.late}</p>
-                        <p className="text-[10px] font-medium text-amber-600/70">Late</p>
-                      </div>
-                      <div className="rounded-lg bg-red-50 py-2">
-                        <p className="text-sm font-bold text-red-600">{d.absent}</p>
-                        <p className="text-[10px] font-medium text-red-600/70">Absent</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+      {/* KPI summary row */}
+      <DeptKPICards data={data} loading={isLoading} />
 
-          <Card>
-            <CardContent className="p-2">
-              <Table>
-                <THead>
-                  <TR>
-                    <TH>Department</TH>
-                    <TH>Total</TH>
-                    <TH>Present</TH>
-                    <TH>Late</TH>
-                    <TH>Absent</TH>
-                    <TH>Early Leave</TH>
-                    <TH>Lateness Rate</TH>
-                  </TR>
-                </THead>
-                <TBody>
-                  {data.map((d) => (
-                    <TR key={d.department}>
-                      <TD className="font-semibold text-slate-900">{d.department}</TD>
-                      <TD>{d.total_employees}</TD>
-                      <TD className="font-medium text-emerald-600">{d.present}</TD>
-                      <TD className="font-medium text-amber-600">{d.late}</TD>
-                      <TD className="font-medium text-red-600">{d.absent}</TD>
-                      <TD className="font-medium text-orange-600">{d.early_left}</TD>
-                      <TD>
-                        <span className="font-bold text-indigo-600">{d.lateness_rate}%</span>
-                      </TD>
-                    </TR>
-                  ))}
-                </TBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </>
+      {/* Sort pills */}
+      {!isLoading && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[13px] font-medium text-[var(--color-text-muted)]">Sort by:</span>
+          {SORT_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => setSortBy(opt.value)}
+              className={`rounded-full px-3.5 py-1.5 text-[12px] font-semibold transition-colors ${
+                sortBy === opt.value
+                  ? "bg-[var(--color-primary)] text-white shadow-sm"
+                  : "border border-[var(--color-border)] bg-white text-[var(--color-text-secondary)] hover:border-[var(--color-primary-light)]"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+          {isFetching && !isLoading && (
+            <span className="flex items-center gap-1 text-[12px] text-[var(--color-text-muted)]">
+              <RefreshCw className="h-3 w-3 animate-spin" />
+              Updating…
+            </span>
+          )}
+        </div>
       )}
+
+      {/* Department cards — full width */}
+      <DeptCards data={data} loading={isLoading} onSelectDept={setSelectedDept} />
+
+      {/* Detail drawer */}
+      <DeptDrawer dept={selectedDept} onClose={() => setSelectedDept(null)} />
     </div>
   );
 }
