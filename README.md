@@ -40,8 +40,10 @@ App: http://localhost:3000
 
 ### Employee Portal
 - Check In / Check Out
+- Late Reason Validation
 - My Attendance History
 - My Attendance Summary
+- HR Policy Chatbot
 
 ### HR Portal
 - Company Attendance Dashboard
@@ -49,6 +51,7 @@ App: http://localhost:3000
 - Absent Employees
 - Department Analytics
 - AI Attendance Insights
+- Company Policy
 
 Select **Employee** or **HR** on the landing page. Employees pick their profile from the dropdown (no login required for POC).
 
@@ -96,3 +99,7 @@ curl http://localhost:8000/api/v1/attendance/employee/EMP001/summary
 ```
 
 Ensure PostgreSQL is running and `DATABASE_URL` uses `127.0.0.1` (not `localhost` on Windows).
+
+## API documentation
+
+See [docs/API.md](docs/API.md) for the full endpoint inventory and frontend integration map.

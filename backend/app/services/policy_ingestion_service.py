@@ -1,13 +1,20 @@
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from sqlalchemy.exc import ProgrammingError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.core.config import get_settings
 from backend.app.core.logger import get_logger
-from backend.app.services import document_parser, embedding_service, pinecone_service
+from backend.app.services import (
+    document_parser,
+    embedding_service,
+    pinecone_service,
+    policy_upload_service,
+)
 
 logger = get_logger(__name__)
 
-CHUNK_SIZE = 800
-CHUNK_OVERLAP = 120
+CHUNK_SIZE = 500
+CHUNK_OVERLAP = 100
 
 
 def _chunk_text(text: str) -> list[str]:
@@ -19,7 +26,24 @@ def _chunk_text(text: str) -> list[str]:
     return splitter.split_text(text)
 
 
-def ingest_policy_document(filename: str, content: bytes) -> dict:
+def _record_to_upload_response(record: policy_upload_service.PolicyUpload) -> dict:
+    return {
+        "filename": record.filename,
+        "chunk_count": record.chunk_count,
+        "page_count": record.page_count,
+        "file_size_bytes": record.file_size_bytes,
+        "uploaded_at": record.uploaded_at,
+        "last_updated_at": record.updated_at,
+        "message": "Company policy document uploaded and indexed successfully.",
+    }
+
+
+async def ingest_policy_document(
+    session: AsyncSession,
+    filename: str,
+    content: bytes,
+    uploaded_by: str = "HR Admin",
+) -> dict:
     settings = get_settings()
 
     if len(content) > settings.policy_max_upload_bytes:
@@ -33,42 +57,116 @@ def ingest_policy_document(filename: str, content: bytes) -> dict:
 
     logger.info("Starting policy ingestion for file=%s size=%d", filename, len(content))
 
-    pinecone_service.clear_namespace()
+    parsed = document_parser.parse_document(filename, content)
 
-    text = document_parser.extract_text(filename, content)
-    chunks = _chunk_text(text)
-    if not chunks:
-        raise ValueError("Document produced no text chunks after parsing.")
+    await policy_upload_service.mark_active_as_replaced(session)
 
-    uploaded_at = pinecone_service.now_iso()
-    policy_chunks = [
-        pinecone_service.PolicyChunk(
-            chunk_index=i,
-            text=chunk,
-            source_filename=filename,
-            uploaded_at=uploaded_at,
-        )
-        for i, chunk in enumerate(chunks)
-    ]
+    record = await policy_upload_service.create_upload_record(
+        session,
+        filename=filename,
+        stored_path="",
+        file_size_bytes=len(content),
+        page_count=parsed.page_count,
+        uploaded_by=uploaded_by,
+    )
 
-    vectors = embedding_service.embed_texts([c.text for c in policy_chunks])
-    pinecone_service.upsert_chunks(policy_chunks, vectors)
+    stored_path = policy_upload_service.save_policy_file(record.id, filename, content)
+    record.stored_path = stored_path
+    await session.flush()
 
-    logger.info("Policy ingestion complete file=%s chunks=%d", filename, len(chunks))
+    try:
+        pinecone_service.clear_namespace()
 
-    return {
-        "filename": filename,
-        "chunk_count": len(chunks),
-        "message": "Company policy document uploaded and indexed successfully.",
-    }
+        chunks = _chunk_text(parsed.text)
+        if not chunks:
+            raise ValueError("Document produced no text chunks after parsing.")
+
+        uploaded_at = pinecone_service.now_iso()
+        policy_chunks = [
+            pinecone_service.PolicyChunk(
+                chunk_index=i,
+                text=chunk,
+                source_filename=filename,
+                uploaded_at=uploaded_at,
+            )
+            for i, chunk in enumerate(chunks)
+        ]
+
+        vectors = embedding_service.embed_texts([c.text for c in policy_chunks])
+        pinecone_service.upsert_chunks(policy_chunks, vectors)
+
+        await policy_upload_service.complete_upload_record(session, record, chunk_count=len(chunks))
+
+        logger.info("Policy ingestion complete file=%s chunks=%d", filename, len(chunks))
+        return _record_to_upload_response(record)
+    except Exception:
+        await policy_upload_service.fail_upload_record(session, record)
+        await session.commit()
+        raise
 
 
-def get_policy_status() -> dict:
+async def get_policy_status(session: AsyncSession) -> dict:
     settings = get_settings()
-    count = pinecone_service.get_namespace_vector_count()
+    active = None
+    try:
+        active = await policy_upload_service.get_active_upload(session)
+    except ProgrammingError:
+        await session.rollback()
+        active = None
+
+    if active:
+        return {
+            "has_policy": True,
+            "chunk_count": active.chunk_count,
+            "namespace": settings.pinecone_namespace,
+            "index_name": settings.pinecone_index_name,
+            "filename": active.filename,
+            "page_count": active.page_count,
+            "file_size_bytes": active.file_size_bytes,
+            "uploaded_by": active.uploaded_by,
+            "uploaded_at": active.uploaded_at,
+            "last_updated_at": active.updated_at,
+            "status": active.status,
+        }
+
+    try:
+        count = pinecone_service.get_namespace_vector_count()
+    except ValueError:
+        count = 0
+
     return {
-        "has_policy": count > 0,
+        "has_policy": False,
         "chunk_count": count,
         "namespace": settings.pinecone_namespace,
         "index_name": settings.pinecone_index_name,
     }
+
+
+async def get_policy_history(session: AsyncSession) -> list[dict]:
+    try:
+        records = await policy_upload_service.list_upload_history(session)
+    except ProgrammingError:
+        await session.rollback()
+        return []
+    return [
+        {
+            "id": r.id,
+            "filename": r.filename,
+            "uploaded_by": r.uploaded_by,
+            "uploaded_at": r.uploaded_at,
+            "status": r.status,
+            "page_count": r.page_count,
+            "file_size_bytes": r.file_size_bytes,
+        }
+        for r in records
+    ]
+
+
+async def get_active_download_path(session: AsyncSession) -> tuple[str, str] | None:
+    active = await policy_upload_service.get_active_upload(session)
+    if not active:
+        return None
+    path = policy_upload_service.resolve_stored_path(active.stored_path)
+    if not path.is_file():
+        return None
+    return active.filename, str(path)

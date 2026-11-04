@@ -25,6 +25,7 @@ class CheckInResponse(BaseModel):
     check_in_status: CheckInStatus
     late_minutes: int
     notification_sent: bool
+    requires_late_reason: bool = False
     late_stats: LateStats | None = None
 
 
@@ -71,3 +72,5 @@ class EmployeeSummaryResponse(BaseModel):
     average_delay_minutes: float
     risk_level: str
     attendance_rate_this_month: float
+    late_reason_pending: bool = False
+    reliability_score: int | None = None

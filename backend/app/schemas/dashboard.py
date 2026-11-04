@@ -18,6 +18,12 @@ class DepartmentStats(BaseModel):
     absent: int
     early_left: int
     lateness_rate: float
+    attendance_rate: float = 0.0
+    valid_reasons: int = 0
+    weak_reasons: int = 0
+    invalid_reasons: int = 0
+    avg_reliability: float = 0.0
+    department_risk_level: str = "Low"
 
 
 class DailyTrendPoint(BaseModel):

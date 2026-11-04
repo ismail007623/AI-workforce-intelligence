@@ -1,6 +1,6 @@
 from datetime import datetime, time
 from zoneinfo import ZoneInfo
-
+import uuid
 from backend.app.core.config import Settings, get_settings
 
 
@@ -32,8 +32,8 @@ def is_on_time(check_in: datetime, settings: Settings | None = None) -> bool:
 def is_late(check_in: datetime, settings: Settings | None = None) -> bool:
     settings = settings or get_settings()
     check_tuple = _time_tuple(check_in.astimezone(settings.tz).time())
-    late_tuple = _time_tuple(settings.late_threshold)
-    return check_tuple >= late_tuple
+    grace_tuple = _time_tuple(settings.grace_end)
+    return check_tuple > grace_tuple
 
 
 def calculate_late_minutes(check_in: datetime, settings: Settings | None = None) -> int:
@@ -67,3 +67,8 @@ def compute_risk_level(late_count: int) -> str:
     if late_count <= 5:
         return "medium"
     return "high"
+
+
+async def generate_conversation_id() -> str:
+    """Generate a unique conversation ID."""
+    return str(uuid.uuid4())

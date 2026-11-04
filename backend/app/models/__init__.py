@@ -1,5 +1,13 @@
 from backend.app.models.attendance import AttendanceRecord, CheckInStatus, CheckOutStatus, NotificationLog
+from backend.app.models.chat import ChatMessage
 from backend.app.models.employee import Department, Employee
+from backend.app.models.late_reason import (
+    EmployeeReliabilityScore,
+    LateArrivalReason,
+    LateReasonEvaluation,
+    LateReasonStatus,
+)
+from backend.app.models.policy_upload import PolicyUpload
 
 __all__ = [
     "Department",
@@ -8,4 +16,10 @@ __all__ = [
     "CheckInStatus",
     "CheckOutStatus",
     "NotificationLog",
+    "PolicyUpload",
+    "LateArrivalReason",
+    "LateReasonEvaluation",
+    "LateReasonStatus",
+    "EmployeeReliabilityScore",
+    "ChatMessage",
 ]

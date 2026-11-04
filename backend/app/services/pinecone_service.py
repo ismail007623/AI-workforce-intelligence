@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone
-
 from pinecone import Pinecone
-
 from backend.app.core.config import get_settings
 from backend.app.core.logger import get_logger
 
@@ -10,7 +8,11 @@ logger = get_logger(__name__)
 
 UPSERT_BATCH_SIZE = 100
 
-_index = None
+settings = get_settings()
+
+pc = Pinecone(api_key=settings.pinecone_api_key)
+_index = pc.Index(settings.pinecone_index_name)
+
 
 
 @dataclass
@@ -22,25 +24,21 @@ class PolicyChunk:
 
 
 def _get_index():
-    global _index
-    settings = get_settings()
-    if not settings.pinecone_api_key:
-        raise ValueError("Pinecone API key is not configured.")
-    if _index is None:
-        pc = Pinecone(api_key=settings.pinecone_api_key)
-        _index = pc.Index(settings.pinecone_index_name)
     return _index
 
 
 def clear_namespace() -> None:
-    settings = get_settings()
-    index = _get_index()
-    logger.info(
-        "Clearing Pinecone namespace index=%s namespace=%s",
-        settings.pinecone_index_name,
-        settings.pinecone_namespace,
-    )
-    index.delete(delete_all=True, namespace=settings.pinecone_namespace)
+    try:
+        settings = get_settings()
+        index = _get_index()
+        logger.info(
+            "Clearing Pinecone namespace index=%s namespace=%s",
+            settings.pinecone_index_name,
+            settings.pinecone_namespace,
+        )
+        index.delete(delete_all=True, namespace=settings.pinecone_namespace)
+    except Exception as e:
+        pass
 
 
 def upsert_chunks(chunks: list[PolicyChunk], vectors: list[list[float]]) -> None:

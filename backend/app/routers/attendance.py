@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.agents.checkin_graph import run_checkin_pipeline
 from backend.app.core.database import get_db
+from backend.app.core.deps import require_hr_role
 from backend.app.models.attendance import CheckInStatus
 from backend.app.schemas.attendance import (
     AbsentEmployeeResponse,
@@ -12,8 +13,13 @@ from backend.app.schemas.attendance import (
     EmployeeSummaryResponse,
     LateStats,
 )
+from backend.app.schemas.late_reason import (
+    LateIntelligenceRecord,
+    LateReasonSubmitRequest,
+    LateReasonSubmitResponse,
+)
 from backend.app.core.logger import get_logger
-from backend.app.services import attendance_service, stats_service
+from backend.app.services import attendance_service, late_reason_service, stats_service
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/attendance", tags=["attendance"])
@@ -38,12 +44,14 @@ async def check_in(payload: EmployeeActionRequest, session: AsyncSession = Depen
         )
 
         late_stats = None
+        requires_reason = False
         if pipeline_state.get("check_in_status") == CheckInStatus.late.value:
             late_stats = LateStats(
                 late_arrivals_this_month=pipeline_state.get("late_arrivals_count", 0),
                 average_delay_minutes=pipeline_state.get("average_delay_minutes", 0.0),
                 risk_level=pipeline_state.get("risk_level", "low"),
             )
+            requires_reason = await late_reason_service.requires_late_reason(session, employee.id)
 
         await session.refresh(record)
         logger.info(
@@ -62,10 +70,27 @@ async def check_in(payload: EmployeeActionRequest, session: AsyncSession = Depen
             check_in_status=record.check_in_status,
             late_minutes=record.late_minutes,
             notification_sent=pipeline_state.get("notification_sent", False),
+            requires_late_reason=requires_reason,
             late_stats=late_stats,
         )
-    
 
+
+@router.post("/late-reason", response_model=LateReasonSubmitResponse)
+async def submit_late_reason(payload: LateReasonSubmitRequest, session: AsyncSession = Depends(get_db)):
+    logger.info("late-reason submitted for employee_id=%s", payload.employee_id)
+    result = await late_reason_service.submit_late_reason(session, payload.employee_id, payload.reason)
+    await session.commit()
+    return LateReasonSubmitResponse(**result)
+
+
+@router.get("/today/late-intelligence", response_model=list[LateIntelligenceRecord], dependencies=[Depends(require_hr_role)])
+async def late_intelligence(
+    sort_by: str = Query(default="late_minutes", pattern="^(risk|validity|late_minutes|reliability)$"),
+    session: AsyncSession = Depends(get_db),
+):
+    logger.info("late-intelligence requested sort_by=%s", sort_by)
+    rows = await late_reason_service.get_late_intelligence_today(session, sort_by=sort_by)
+    return [LateIntelligenceRecord(**row) for row in rows]
 
 
 @router.post("/check-out", response_model=CheckOutResponse)

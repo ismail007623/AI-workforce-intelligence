@@ -16,6 +16,36 @@ def build_late_arrival_email(employee_name: str, check_in_time_str: str, office_
         "Thank you."
     )
 
+
+def build_hr_late_reason_alert(
+    employee_name: str,
+    reason: str,
+    decision: str,
+    category: str,
+    validity_score: int,
+    risk_score: int,
+    explanation: str,
+) -> str:
+    return (
+        f"HR Alert: Late reason requires attention\n\n"
+        f"Employee: {employee_name}\n"
+        f"Reason: {reason}\n\n"
+        f"AI Category: {category}\n"
+        f"Decision: {decision}\n"
+        f"Validity Score: {validity_score}\n"
+        f"Risk Score: {risk_score}\n\n"
+        f"Explanation: {explanation}\n"
+    )
+
+
+def build_hr_high_risk_alert(employee_name: str, weak_invalid_count: int) -> str:
+    return (
+        f"High Risk Alert\n\n"
+        f"Employee {employee_name} has submitted {weak_invalid_count} weak or invalid "
+        f"late reasons in the last 30 days.\n\n"
+        f"Manager review recommended."
+    )
+
 async def send_email(to_email: str, subject: str, body: str) -> None:
     settings = get_settings()
     if not settings.smtp_user or not settings.smtp_password:
