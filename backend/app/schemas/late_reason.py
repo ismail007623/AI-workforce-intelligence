@@ -8,6 +8,16 @@ class LateReasonSubmitRequest(BaseModel):
     reason: str = Field(..., min_length=3, max_length=2000)
 
 
+class MeLateReasonRequest(BaseModel):
+    """Late-reason body for the /me endpoint: reason only.
+
+    The employee is resolved from the token, so there is no
+    employee_id to fake.
+    """
+
+    reason: str = Field(..., min_length=3, max_length=2000)
+
+
 class LateReasonEvaluationResponse(BaseModel):
     category: str
     validity_score: int

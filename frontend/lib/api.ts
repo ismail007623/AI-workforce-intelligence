@@ -300,30 +300,26 @@ export const api = {
 
   getEmployees: () => request<Employee[]>("/employees"),
 
-  checkIn: (employee_id: string) =>
-    request<CheckInResponse>("/attendance/check-in", {
+  checkIn: () =>
+    request<CheckInResponse>("/attendance/me/check-in", {
       method: "POST",
-      body: JSON.stringify({ employee_id }),
     }),
-  checkOut: (employee_id: string) =>
-    request<CheckOutResponse>("/attendance/check-out", {
+  checkOut: () =>
+    request<CheckOutResponse>("/attendance/me/check-out", {
       method: "POST",
-      body: JSON.stringify({ employee_id }),
     }),
 
-  submitLateReason: (employee_id: string, reason: string) =>
-    request<LateReasonSubmitResponse>("/attendance/late-reason", {
+  submitLateReason: (reason: string) =>
+    request<LateReasonSubmitResponse>("/attendance/me/late-reason", {
       method: "POST",
-      body: JSON.stringify({ employee_id, reason }),
+      body: JSON.stringify({ reason }),
     }),
 
   getLateIntelligence: (sort_by = "late_minutes") =>
     request<LateIntelligenceRecord[]>(`/attendance/today/late-intelligence?sort_by=${sort_by}`),
 
-  getEmployeeHistory: (employee_id: string) =>
-    request<AttendanceRecord[]>(`/attendance/employee/${employee_id}`),
-  getEmployeeSummary: (employee_id: string) =>
-    request<EmployeeSummary>(`/attendance/employee/${employee_id}/summary`),
+  getEmployeeHistory: () => request<AttendanceRecord[]>("/attendance/me/history"),
+  getEmployeeSummary: () => request<EmployeeSummary>("/attendance/me/summary"),
 
   getTodayAttendance: () => request<AttendanceRecord[]>("/attendance/today"),
   getTodayAbsent: () => request<AbsentEmployee[]>("/attendance/today/absent"),

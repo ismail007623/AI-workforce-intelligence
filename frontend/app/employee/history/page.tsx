@@ -18,7 +18,7 @@ export default function EmployeeHistoryPage() {
 
   const { data = [], isLoading, isError } = useQuery({
     queryKey: ["employee-history", employeeId],
-    queryFn: () => api.getEmployeeHistory(employeeId),
+    queryFn: () => api.getEmployeeHistory(),
   });
 
   return (

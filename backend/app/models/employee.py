@@ -23,6 +23,7 @@ class Employee(Base):
     email = Column(String(200), nullable=False)
     department_id = Column(Integer, ForeignKey("departments.id"), nullable=False)
     org_id = Column(Integer, ForeignKey("organizations.id"), nullable=True, index=True)
+    manager_id = Column(Integer, ForeignKey("employees.id"), nullable=True, index=True)
 
     department = relationship("Department", back_populates="employees")
     organization = relationship("Organization", back_populates="employees")

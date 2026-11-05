@@ -4,7 +4,8 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.core.database import get_db
-from backend.app.core.auth_deps import JWTBearer, require_hr_role
+from backend.app.core.auth_deps import JWTBearer, get_current_user, require_hr_role
+from backend.app.models.user import User
 from backend.app.schemas.attendance import AbsentEmployeeResponse
 from backend.app.schemas.dashboard import DailyTrendPoint, DashboardSummary, DepartmentStats
 from backend.app.schemas.department_employees import DepartmentEmployeeRow
@@ -18,8 +19,11 @@ router = APIRouter(
 
 
 @router.get("/summary", response_model=DashboardSummary)
-async def dashboard_summary(session: AsyncSession = Depends(get_db)):
-    return await stats_service.get_dashboard_summary(session)
+async def dashboard_summary(
+    session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return await stats_service.get_dashboard_summary(session, current_user)
 
 
 @router.get("/departments", response_model=list[DepartmentStats])
@@ -29,8 +33,9 @@ async def department_stats(
         pattern="^(late_count|risk|attendance|reliability|invalid_reasons)$",
     ),
     session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    return await stats_service.get_department_stats(session, sort_by=sort_by)
+    return await stats_service.get_department_stats(session, current_user, sort_by=sort_by)
 
 
 @router.get("/departments/{department_name}/employees", response_model=list[DepartmentEmployeeRow])
@@ -41,18 +46,22 @@ async def department_employees(
         pattern="^(late|punctual|absent)$",
     ),
     session: AsyncSession = Depends(get_db),
-    _hr = Depends(require_hr_role),
+    current_user: User = Depends(get_current_user),
 ):
     rows = await department_employee_service.get_department_employees(
-        session, department_name, sort_by=sort_by
+        session, current_user, department_name, sort_by=sort_by
     )
     await session.commit()
     return [DepartmentEmployeeRow(**row) for row in rows]
 
 
 @router.get("/trend", response_model=list[DailyTrendPoint])
-async def attendance_trend(days: int = 7, session: AsyncSession = Depends(get_db)):
-    points = await stats_service.get_daily_trend(session, days=days)
+async def attendance_trend(
+    days: int = 7,
+    session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    points = await stats_service.get_daily_trend(session, current_user, days=days)
     return [DailyTrendPoint(**p) for p in points]
 
 
@@ -60,6 +69,7 @@ async def attendance_trend(days: int = 7, session: AsyncSession = Depends(get_db
 async def list_absentees(
     date: date_type | None = Query(default=None, description="Filter by date (YYYY-MM-DD). Defaults to today."),
     session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    rows = await stats_service.get_absent_employees_by_date(session, record_date=date)
+    rows = await stats_service.get_absent_employees_by_date(session, current_user, record_date=date)
     return [AbsentEmployeeResponse(**row) for row in rows]

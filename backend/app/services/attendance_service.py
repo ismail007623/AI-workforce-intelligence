@@ -5,8 +5,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from backend.app.core.scoping import get_scoped_employee, visible_user_ids
 from backend.app.models.attendance import AttendanceRecord, CheckInStatus, CheckOutStatus
 from backend.app.models.employee import Employee
+from backend.app.models.user import User
 from backend.app.utils.time_rules import (
     calculate_early_leave_minutes,
     calculate_late_minutes,
@@ -63,10 +65,12 @@ async def check_in(session: AsyncSession, employee_code: str) -> tuple[Employee,
         existing.check_in_time = check_in_time
         existing.check_in_status = check_in_status
         existing.late_minutes = late_minutes
+        existing.org_id = employee.org_id
         record = existing
     else:
         record = AttendanceRecord(
             employee_id=employee.id,
+            org_id=employee.org_id,
             date=record_date,
             check_in_time=check_in_time,
             check_in_status=check_in_status,
@@ -103,6 +107,7 @@ async def check_out(session: AsyncSession, employee_code: str) -> tuple[Employee
 
 async def list_today_records(
     session: AsyncSession,
+    me: User,
     status_filter: CheckInStatus | None = None,
     early_left: bool | None = None,
 ) -> list[tuple[Employee, AttendanceRecord]]:
@@ -111,7 +116,11 @@ async def list_today_records(
         select(Employee, AttendanceRecord)
         .join(AttendanceRecord, AttendanceRecord.employee_id == Employee.id)
         .options(selectinload(Employee.department))
-        .where(AttendanceRecord.date == record_date)
+        .where(
+            AttendanceRecord.date == record_date,
+            Employee.id.in_(visible_user_ids(session, me)),
+            AttendanceRecord.org_id == me.org_id,
+        )
     )
     if status_filter:
         query = query.where(AttendanceRecord.check_in_status == status_filter)
@@ -122,8 +131,8 @@ async def list_today_records(
     return list(result.all())
 
 
-async def get_employee_history(session: AsyncSession, employee_code: str, limit: int = 30) -> list[tuple[Employee, AttendanceRecord]]:
-    employee = await get_employee_by_code(session, employee_code)
+async def get_employee_history(session: AsyncSession, me: User, employee_code: str, limit: int = 30) -> list[tuple[Employee, AttendanceRecord]]:
+    employee = await get_scoped_employee(session, me, employee_code)
     result = await session.execute(
         select(AttendanceRecord)
         .where(AttendanceRecord.employee_id == employee.id)

@@ -22,7 +22,7 @@ export default function EmployeeSummaryPage() {
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["employee-summary", employeeId],
-    queryFn: () => api.getEmployeeSummary(employeeId),
+    queryFn: () => api.getEmployeeSummary(),
   });
 
   return (

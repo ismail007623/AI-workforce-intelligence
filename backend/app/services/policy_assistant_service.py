@@ -10,14 +10,28 @@ async def get_last_n_messages(
     conversation_id: str,
     session: AsyncSession,
     n: int = 10,
+    employee_id: str | None = None,
 ) -> list[dict]:
+    """Return the last n messages of a conversation.
+
+    Args:
+        conversation_id: The conversation to read.
+        session: The database session.
+        n: How many messages to return.
+        employee_id: When given, only messages saved for that
+            employee code are returned, so a guessed conversation
+            id cannot read another employee's (or org's) history.
+
+    Returns:
+        The messages oldest-first.
+    """
     try:
         logger.info("Fetching last %d messages for conversation %s", n, conversation_id)
+        query = select(ChatMessage).where(ChatMessage.conversation_id == conversation_id)
+        if employee_id is not None:
+            query = query.where(ChatMessage.employee_id == employee_id)
         result = await session.execute(
-            select(ChatMessage)
-            .where(ChatMessage.conversation_id == conversation_id)
-            .order_by(ChatMessage.created_at.desc())
-            .limit(n)
+            query.order_by(ChatMessage.created_at.desc()).limit(n)
         )
         messages = list(reversed(result.scalars().all()))
         return [{"role": m.role, "content": m.content} for m in messages]

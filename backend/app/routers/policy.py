@@ -17,11 +17,14 @@ router = APIRouter(
 
 
 @router.get("/policy/status", response_model=PolicyStatusResponse, response_model_exclude_none=True)
-async def policy_status(session: AsyncSession = Depends(get_db)):
+async def policy_status(
+    session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
 
     try:
         logger.info("policy-status requested")
-        result = await policy_ingestion_service.get_policy_status(session)
+        result = await policy_ingestion_service.get_policy_status(session, current_user.org_id)
         logger.info("policy-status returned has_policy=%s", result["has_policy"])
         return result
     except ValueError as exc:
@@ -30,19 +33,25 @@ async def policy_status(session: AsyncSession = Depends(get_db)):
 
 
 @router.get("/policy/history", response_model=list[PolicyHistoryItem])
-async def policy_history(session: AsyncSession = Depends(get_db)):
+async def policy_history(
+    session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     logger.info("policy-history requested")
     try:
-        return await policy_ingestion_service.get_policy_history(session)
+        return await policy_ingestion_service.get_policy_history(session, current_user.org_id)
     except ValueError as exc:
         logger.error("policy-history failed: %s", exc)
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
 
 
 @router.get("/policy/download")
-async def policy_download(session: AsyncSession = Depends(get_db)):
+async def policy_download(
+    session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     logger.info("policy-download requested")
-    result = await policy_ingestion_service.get_active_download_path(session)
+    result = await policy_ingestion_service.get_active_download_path(session, current_user.org_id)
     if not result:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No active policy document found.")
     filename, path = result
@@ -68,6 +77,7 @@ async def policy_upload(
             filename,
             content,
             uploaded_by=current_user.name,
+            org_id=current_user.org_id,
         )
         logger.info(
             "policy-upload completed file=%s chunks=%d pages=%d",

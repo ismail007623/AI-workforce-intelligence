@@ -43,7 +43,26 @@ async def ingest_policy_document(
     filename: str,
     content: bytes,
     uploaded_by: str = "HR Admin",
+    org_id: int | None = None,
 ) -> dict:
+    """Ingest a policy document for one organization.
+
+    The database record is stamped with the uploader's ``org_id``,
+    and only that org's previous active policy is replaced. The
+    Pinecone write itself still uses the single global namespace in
+    Phase 2 (per-org namespaces are Phase 3 work); do not treat the
+    policy chatbot as isolated yet.
+
+    Args:
+        session: The database session.
+        filename: The uploaded file name.
+        content: The uploaded file bytes.
+        uploaded_by: The uploader's display name.
+        org_id: The uploader's organization id.
+
+    Returns:
+        The upload response dict.
+    """
     settings = get_settings()
 
     if len(content) > settings.policy_max_upload_bytes:
@@ -59,7 +78,7 @@ async def ingest_policy_document(
 
     parsed = document_parser.parse_document(filename, content)
 
-    await policy_upload_service.mark_active_as_replaced(session)
+    await policy_upload_service.mark_active_as_replaced(session, org_id)
 
     record = await policy_upload_service.create_upload_record(
         session,
@@ -68,6 +87,7 @@ async def ingest_policy_document(
         file_size_bytes=len(content),
         page_count=parsed.page_count,
         uploaded_by=uploaded_by,
+        org_id=org_id,
     )
 
     stored_path = policy_upload_service.save_policy_file(record.id, filename, content)
@@ -105,11 +125,11 @@ async def ingest_policy_document(
         raise
 
 
-async def get_policy_status(session: AsyncSession) -> dict:
+async def get_policy_status(session: AsyncSession, org_id: int | None = None) -> dict:
     settings = get_settings()
     active = None
     try:
-        active = await policy_upload_service.get_active_upload(session)
+        active = await policy_upload_service.get_active_upload(session, org_id)
     except ProgrammingError:
         await session.rollback()
         active = None
@@ -142,9 +162,9 @@ async def get_policy_status(session: AsyncSession) -> dict:
     }
 
 
-async def get_policy_history(session: AsyncSession) -> list[dict]:
+async def get_policy_history(session: AsyncSession, org_id: int | None = None) -> list[dict]:
     try:
-        records = await policy_upload_service.list_upload_history(session)
+        records = await policy_upload_service.list_upload_history(session, org_id)
     except ProgrammingError:
         await session.rollback()
         return []
@@ -162,8 +182,8 @@ async def get_policy_history(session: AsyncSession) -> list[dict]:
     ]
 
 
-async def get_active_download_path(session: AsyncSession) -> tuple[str, str] | None:
-    active = await policy_upload_service.get_active_upload(session)
+async def get_active_download_path(session: AsyncSession, org_id: int | None = None) -> tuple[str, str] | None:
+    active = await policy_upload_service.get_active_upload(session, org_id)
     if not active:
         return None
     path = policy_upload_service.resolve_stored_path(active.stored_path)

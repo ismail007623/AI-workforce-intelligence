@@ -8,6 +8,7 @@ from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from backend.app.core.database import get_db
 from backend.app.core.logger import get_logger
@@ -191,9 +192,10 @@ async def require_self_or_hr(
 ) -> User:
     """Allow HR/Admin users, or employees acting on their own record only.
 
-    HR and Admin users may access any employee record in their
-    organization; employees may access only their own record.
-    (Organization scoping of HR/Admin access is Phase 2 work.)
+    HR and Admin users may access any employee record in their own
+    organization only; an employee in another organization is a 403,
+    never a 404, so one org cannot probe another org's employee codes.
+    Employees may access only their own record.
 
     Args:
         session: The database session.
@@ -205,17 +207,58 @@ async def require_self_or_hr(
 
     Raises:
         HTTPException: 403 when an employee accesses another
-            employee's record.
+            employee's record or an HR/Admin accesses a record in
+            another organization; 404 when the employee code does
+            not exist at all.
+    """
+    from backend.app.core.scoping import get_scoped_employee
+
+    await get_scoped_employee(session, current_user, employee_id)
+    return current_user
+
+
+async def require_own_employee(
+    session: AsyncSession, current_user: User
+) -> Employee:
+    """Resolve the employee record linked to the caller's account.
+
+    Used by the ``/me`` endpoints: the employee is taken from the
+    token, never from the request body or URL.
+
+    Args:
+        session: The database session.
+        current_user: The authenticated user.
+
+    Returns:
+        The linked Employee row.
+
+    Raises:
+        HTTPException: 403 when the caller is HR/Admin (they have
+            no employee record to act on) or when the account is
+            not linked to any employee.
     """
     if current_user.role in (UserRole.hr, UserRole.admin):
-        return current_user
-    own_code = await _own_employee_code(session, current_user)
-    if own_code is None or own_code != employee_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You may only access your own records.",
+            detail="HR accounts cannot act as an employee.",
         )
-    return current_user
+    if current_user.employee_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This account is not linked to an employee record.",
+        )
+    result = await session.execute(
+        select(Employee)
+        .options(selectinload(Employee.department))
+        .where(Employee.id == current_user.employee_id)
+    )
+    employee = result.scalar_one_or_none()
+    if employee is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This account is not linked to an employee record.",
+        )
+    return employee
 
 
 async def require_self_not_hr(

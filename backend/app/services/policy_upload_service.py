@@ -38,10 +38,16 @@ def resolve_stored_path(stored_path: str) -> Path:
     return _storage_dir() / stored_path
 
 
-async def mark_active_as_replaced(session: AsyncSession) -> None:
+async def mark_active_as_replaced(session: AsyncSession, org_id: int | None = None) -> None:
+    """Mark the caller's org's active policy as replaced.
+
+    Args:
+        session: The database session.
+        org_id: The organization whose policy is replaced.
+    """
     await session.execute(
         update(PolicyUpload)
-        .where(PolicyUpload.status == ACTIVE)
+        .where(PolicyUpload.status == ACTIVE, PolicyUpload.org_id == org_id)
         .values(status=REPLACED, updated_at=datetime.now(timezone.utc))
     )
 
@@ -54,6 +60,7 @@ async def create_upload_record(
     file_size_bytes: int,
     page_count: int,
     uploaded_by: str,
+    org_id: int | None = None,
 ) -> PolicyUpload:
     record = PolicyUpload(
         filename=filename,
@@ -62,6 +69,7 @@ async def create_upload_record(
         page_count=page_count,
         chunk_count=0,
         uploaded_by=uploaded_by,
+        org_id=org_id,
         status=INDEXING,
     )
     session.add(record)
@@ -88,15 +96,19 @@ async def fail_upload_record(session: AsyncSession, record: PolicyUpload) -> Non
     await session.flush()
 
 
-async def get_active_upload(session: AsyncSession) -> PolicyUpload | None:
+async def get_active_upload(session: AsyncSession, org_id: int | None = None) -> PolicyUpload | None:
     result = await session.execute(
-        select(PolicyUpload).where(PolicyUpload.status == ACTIVE).order_by(PolicyUpload.id.desc())
+        select(PolicyUpload)
+        .where(PolicyUpload.status == ACTIVE, PolicyUpload.org_id == org_id)
+        .order_by(PolicyUpload.id.desc())
     )
     return result.scalars().first()
 
 
-async def list_upload_history(session: AsyncSession) -> list[PolicyUpload]:
+async def list_upload_history(session: AsyncSession, org_id: int | None = None) -> list[PolicyUpload]:
     result = await session.execute(
-        select(PolicyUpload).order_by(PolicyUpload.uploaded_at.desc())
+        select(PolicyUpload)
+        .where(PolicyUpload.org_id == org_id)
+        .order_by(PolicyUpload.uploaded_at.desc())
     )
     return list(result.scalars().all())

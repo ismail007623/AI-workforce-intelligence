@@ -5,9 +5,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from backend.app.core.scoping import visible_user_ids
 from backend.app.models.attendance import AttendanceRecord, CheckInStatus
 from backend.app.models.employee import Employee
 from backend.app.models.late_reason import LateArrivalReason, LateReasonEvaluation, LateReasonStatus
+from backend.app.models.user import User
 from backend.app.services import reliability_service
 from backend.app.utils.time_rules import today_in_tz
 
@@ -75,7 +77,17 @@ async def submit_late_reason(session: AsyncSession, employee_code: str, reason: 
     }
 
 
-async def get_late_intelligence_today(session: AsyncSession, sort_by: str = "late_minutes") -> list[dict]:
+async def get_late_intelligence_today(session: AsyncSession, me: User, sort_by: str = "late_minutes") -> list[dict]:
+    """Return today's late arrivals, scoped to the caller's org.
+
+    Args:
+        session: The database session.
+        me: The authenticated HR/Admin user.
+        sort_by: The sort key.
+
+    Returns:
+        One row per late employee visible to the caller.
+    """
     today = today_in_tz()
     result = await session.execute(
         select(Employee, AttendanceRecord, LateArrivalReason, LateReasonEvaluation)
@@ -86,10 +98,12 @@ async def get_late_intelligence_today(session: AsyncSession, sort_by: str = "lat
         .where(
             AttendanceRecord.date == today,
             AttendanceRecord.check_in_status == CheckInStatus.late,
+            Employee.id.in_(visible_user_ids(session, me)),
+            AttendanceRecord.org_id == me.org_id,
         )
     )
 
-    reliability_map = await reliability_service.get_reliability_map(session)
+    reliability_map = await reliability_service.get_reliability_map(session, me)
     rows = []
     for employee, record, reason, evaluation in result.all():
         rows.append(

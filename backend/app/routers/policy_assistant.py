@@ -29,8 +29,9 @@ async def policy_chat(
                 detail="Not authenticated.",
             )
         current_user = await resolve_current_user(session, authorization[7:].strip())
-        if current_user.role != UserRole.hr:
-            await require_self_or_hr(session, current_user, req.employee_id)
+        # HR/Admin are org-checked by require_self_or_hr too: they may
+        # only chat about employees in their own organization.
+        await require_self_or_hr(session, current_user, req.employee_id)
         logger.info("Entering policy-chat API for employee %s conversation %s", req.employee_id, req.conversation_id)
         conversation_id = req.conversation_id
         employee_id = req.employee_id
@@ -39,8 +40,9 @@ async def policy_chat(
         # Generate conversation ID if this is the first message
         conversation_id = req.conversation_id or await generate_conversation_id()
 
-        # Pre-fetch conversation history 
-        chat_history = await get_last_n_messages(conversation_id, session)
+        # Pre-fetch conversation history, scoped to this employee so a
+        # guessed conversation id cannot read another org's history.
+        chat_history = await get_last_n_messages(conversation_id, session, employee_id=employee_id)
 
         # Persist user message before invoking the graph
         await save_message(conversation_id, employee_id, "user", user_query, session)

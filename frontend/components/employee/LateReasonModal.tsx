@@ -6,11 +6,9 @@ import { api, ApiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 
 export function LateReasonModal({
-  employeeId,
   open,
   onComplete,
 }: {
-  employeeId: string;
   open: boolean;
   onComplete: () => void;
 }) {
@@ -27,7 +25,7 @@ export function LateReasonModal({
     setLoading(true);
     setError(null);
     try {
-      await api.submitLateReason(employeeId, trimmed);
+      await api.submitLateReason(trimmed);
       setSubmitted(true);
       setTimeout(() => {
         onComplete();

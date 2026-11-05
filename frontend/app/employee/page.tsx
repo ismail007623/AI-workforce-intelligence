@@ -21,11 +21,11 @@ export default function EmployeeHomePage() {
 
   const summaryQ = useQuery({
     queryKey: ["employee-summary", employeeId],
-    queryFn: () => api.getEmployeeSummary(employeeId),
+    queryFn: () => api.getEmployeeSummary(),
   });
   const historyQ = useQuery({
     queryKey: ["employee-history", employeeId],
-    queryFn: () => api.getEmployeeHistory(employeeId),
+    queryFn: () => api.getEmployeeHistory(),
   });
 
   const summary = summaryQ.data;

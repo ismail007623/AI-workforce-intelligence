@@ -1,28 +1,73 @@
+"""Organization-scoped attendance statistics.
+
+Every function that reads more than one employee takes the
+authenticated user ``me`` and filters through
+``visible_user_ids`` plus ``org_id`` on the tables that carry it,
+so one organization can never see another organization's numbers.
+Single-employee functions resolve the employee through
+``get_scoped_employee`` first (404 when the code does not exist,
+403 when it belongs to another organization).
+"""
+
 from datetime import timedelta
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from backend.app.core.scoping import get_scoped_employee, visible_user_ids
 from backend.app.models.attendance import AttendanceRecord, CheckInStatus, CheckOutStatus
 from backend.app.models.employee import Department, Employee
 from backend.app.models.late_reason import EmployeeReliabilityScore, LateArrivalReason, LateReasonEvaluation
+from backend.app.models.user import User
 from backend.app.schemas.dashboard import DashboardSummary, DepartmentStats
 from backend.app.services import reliability_service
 from backend.app.utils.time_rules import today_in_tz
 
 
-async def _all_employees(session: AsyncSession) -> list[Employee]:
-    result = await session.execute(select(Employee).options(selectinload(Employee.department)))
+async def _all_employees(session: AsyncSession, me: User) -> list[Employee]:
+    """Return the employees the caller may see, with departments loaded.
+
+    Args:
+        session: The database session.
+        me: The authenticated user whose scope applies.
+
+    Returns:
+        The visible employees.
+    """
+    result = await session.execute(
+        select(Employee)
+        .options(selectinload(Employee.department))
+        .where(Employee.id.in_(visible_user_ids(session, me)))
+    )
     return list(result.scalars().all())
 
 
-async def get_dashboard_summary(session: AsyncSession) -> DashboardSummary:
+def _visible_records_query(session: AsyncSession, me: User):
+    """Base attendance-record query limited to the caller's org.
+
+    Args:
+        session: The database session.
+        me: The authenticated user whose scope applies.
+
+    Returns:
+        A select of AttendanceRecord rows for visible employees in
+        the caller's organization.
+    """
+    return select(AttendanceRecord).where(
+        AttendanceRecord.employee_id.in_(visible_user_ids(session, me)),
+        AttendanceRecord.org_id == me.org_id,
+    )
+
+
+async def get_dashboard_summary(session: AsyncSession, me: User) -> DashboardSummary:
     record_date = today_in_tz()
-    employees = await _all_employees(session)
+    employees = await _all_employees(session, me)
     total = len(employees)
 
-    result = await session.execute(select(AttendanceRecord).where(AttendanceRecord.date == record_date))
+    result = await session.execute(
+        _visible_records_query(session, me).where(AttendanceRecord.date == record_date)
+    )
     records = {record.employee_id: record for record in result.scalars().all()}
 
     present = late = early_left = 0
@@ -51,24 +96,31 @@ async def get_dashboard_summary(session: AsyncSession) -> DashboardSummary:
     )
 
 
-async def get_department_stats(session: AsyncSession, sort_by: str | None = None) -> list[DepartmentStats]:
+async def get_department_stats(session: AsyncSession, me: User, sort_by: str | None = None) -> list[DepartmentStats]:
     record_date = today_in_tz()
-    dept_result = await session.execute(select(Department))
+    dept_result = await session.execute(
+        select(Department).where(Department.org_id == me.org_id)
+    )
     departments = list(dept_result.scalars().all())
 
-    emp_result = await session.execute(select(Employee).options(selectinload(Employee.department)))
-    employees = list(emp_result.scalars().all())
+    employees = await _all_employees(session, me)
 
-    att_result = await session.execute(select(AttendanceRecord).where(AttendanceRecord.date == record_date))
+    att_result = await session.execute(
+        _visible_records_query(session, me).where(AttendanceRecord.date == record_date)
+    )
     records = {record.employee_id: record for record in att_result.scalars().all()}
 
-    reliability_map = await reliability_service.get_reliability_map(session)
+    reliability_map = await reliability_service.get_reliability_map(session, me)
 
     eval_result = await session.execute(
         select(LateArrivalReason, LateReasonEvaluation)
         .join(LateReasonEvaluation, LateReasonEvaluation.late_reason_id == LateArrivalReason.id)
         .join(AttendanceRecord, AttendanceRecord.id == LateArrivalReason.attendance_id)
-        .where(AttendanceRecord.date == record_date)
+        .join(Employee, Employee.id == LateArrivalReason.employee_id)
+        .where(
+            AttendanceRecord.date == record_date,
+            Employee.id.in_(visible_user_ids(session, me)),
+        )
     )
     eval_by_employee: dict[int, LateReasonEvaluation] = {}
     for reason, evaluation in eval_result.all():
@@ -152,7 +204,7 @@ def _sort_department_stats(stats: list[DepartmentStats], sort_by: str) -> list[D
     return sorted(stats, key=key_fn)
 
 
-async def get_late_employees_today(session: AsyncSession) -> list[dict]:
+async def get_late_employees_today(session: AsyncSession, me: User) -> list[dict]:
     record_date = today_in_tz()
     result = await session.execute(
         select(Employee, AttendanceRecord)
@@ -161,6 +213,8 @@ async def get_late_employees_today(session: AsyncSession) -> list[dict]:
         .where(
             AttendanceRecord.date == record_date,
             AttendanceRecord.check_in_status == CheckInStatus.late,
+            Employee.id.in_(visible_user_ids(session, me)),
+            AttendanceRecord.org_id == me.org_id,
         )
     )
     return [
@@ -175,7 +229,7 @@ async def get_late_employees_today(session: AsyncSession) -> list[dict]:
     ]
 
 
-async def get_early_leavers_today(session: AsyncSession) -> list[dict]:
+async def get_early_leavers_today(session: AsyncSession, me: User) -> list[dict]:
     record_date = today_in_tz()
     result = await session.execute(
         select(Employee, AttendanceRecord)
@@ -184,6 +238,8 @@ async def get_early_leavers_today(session: AsyncSession) -> list[dict]:
         .where(
             AttendanceRecord.date == record_date,
             AttendanceRecord.check_out_status == CheckOutStatus.early_left,
+            Employee.id.in_(visible_user_ids(session, me)),
+            AttendanceRecord.org_id == me.org_id,
         )
     )
     return [
@@ -198,11 +254,8 @@ async def get_early_leavers_today(session: AsyncSession) -> list[dict]:
     ]
 
 
-async def get_employee_late_stats(session: AsyncSession, employee_code: str) -> dict:
-    emp_result = await session.execute(select(Employee).where(Employee.employee_id == employee_code))
-    employee = emp_result.scalar_one_or_none()
-    if employee is None:
-        return {"error": f"Employee {employee_code} not found"}
+async def get_employee_late_stats(session: AsyncSession, me: User, employee_code: str) -> dict:
+    employee = await get_scoped_employee(session, me, employee_code)
 
     today = today_in_tz()
     month_start = today.replace(day=1)
@@ -228,7 +281,7 @@ async def get_employee_late_stats(session: AsyncSession, employee_code: str) -> 
     }
 
 
-async def get_attendance_trend(session: AsyncSession, days: int = 7) -> dict:
+async def get_attendance_trend(session: AsyncSession, me: User, days: int = 7) -> dict:
     from datetime import timedelta
 
     today = today_in_tz()
@@ -236,7 +289,10 @@ async def get_attendance_trend(session: AsyncSession, days: int = 7) -> dict:
     previous_start = current_start - timedelta(days=days)
     previous_end = current_start - timedelta(days=1)
 
-    total_employees = await session.scalar(select(func.count()).select_from(Employee)) or 0
+    visible_ids = visible_user_ids(session, me)
+    total_employees = await session.scalar(
+        select(func.count()).select_from(Employee).where(Employee.id.in_(visible_ids))
+    ) or 0
 
     async def _rate(start, end):
         result = await session.execute(
@@ -244,6 +300,8 @@ async def get_attendance_trend(session: AsyncSession, days: int = 7) -> dict:
                 AttendanceRecord.date >= start,
                 AttendanceRecord.date <= end,
                 AttendanceRecord.check_in_time.is_not(None),
+                AttendanceRecord.employee_id.in_(visible_ids),
+                AttendanceRecord.org_id == me.org_id,
             )
         )
         check_ins = result.scalar() or 0
@@ -262,10 +320,12 @@ async def get_attendance_trend(session: AsyncSession, days: int = 7) -> dict:
     }
 
 
-async def get_absent_employees_today(session: AsyncSession) -> list[dict]:
+async def get_absent_employees_today(session: AsyncSession, me: User) -> list[dict]:
     record_date = today_in_tz()
-    employees = await _all_employees(session)
-    result = await session.execute(select(AttendanceRecord).where(AttendanceRecord.date == record_date))
+    employees = await _all_employees(session, me)
+    result = await session.execute(
+        _visible_records_query(session, me).where(AttendanceRecord.date == record_date)
+    )
     records = {record.employee_id: record for record in result.scalars().all()}
 
     absent = []
@@ -284,15 +344,16 @@ async def get_absent_employees_today(session: AsyncSession) -> list[dict]:
 
 async def get_absent_employees_by_date(
     session: AsyncSession,
+    me: User,
     record_date=None,
 ) -> list[dict]:
     from datetime import date as date_type  # noqa: PLC0415
 
     if record_date is None:
         record_date = today_in_tz()
-    employees = await _all_employees(session)
+    employees = await _all_employees(session, me)
     result = await session.execute(
-        select(AttendanceRecord).where(AttendanceRecord.date == record_date)
+        _visible_records_query(session, me).where(AttendanceRecord.date == record_date)
     )
     records = {r.employee_id: r for r in result.scalars().all()}
     absent = []
@@ -309,17 +370,14 @@ async def get_absent_employees_by_date(
     return absent
 
 
-async def get_employee_summary(session: AsyncSession, employee_code: str) -> dict:
-    from fastapi import HTTPException, status
-
+async def get_employee_summary(session: AsyncSession, me: User, employee_code: str) -> dict:
     from backend.app.utils.time_rules import compute_risk_level
 
+    employee = await get_scoped_employee(session, me, employee_code)
     emp_result = await session.execute(
-        select(Employee).options(selectinload(Employee.department)).where(Employee.employee_id == employee_code)
+        select(Employee).options(selectinload(Employee.department)).where(Employee.id == employee.id)
     )
-    employee = emp_result.scalar_one_or_none()
-    if employee is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
+    employee = emp_result.scalar_one()
 
     today = today_in_tz()
     month_start = today.replace(day=1)
@@ -379,18 +437,18 @@ async def get_employee_summary(session: AsyncSession, employee_code: str) -> dic
     }
 
 
-async def get_daily_trend(session: AsyncSession, days: int = 7) -> list[dict]:
+async def get_daily_trend(session: AsyncSession, me: User, days: int = 7) -> list[dict]:
     from datetime import timedelta
 
     today = today_in_tz()
-    employees = await _all_employees(session)
+    employees = await _all_employees(session, me)
     total = len(employees)
     points: list[dict] = []
 
     for offset in range(days - 1, -1, -1):
         record_date = today - timedelta(days=offset)
         result = await session.execute(
-            select(AttendanceRecord).where(AttendanceRecord.date == record_date)
+            _visible_records_query(session, me).where(AttendanceRecord.date == record_date)
         )
         records = {r.employee_id: r for r in result.scalars().all()}
 
@@ -417,7 +475,7 @@ async def get_daily_trend(session: AsyncSession, days: int = 7) -> list[dict]:
     return points
 
 
-async def get_late_reason_analytics(session: AsyncSession) -> dict:
+async def get_late_reason_analytics(session: AsyncSession, me: User) -> dict:
     today = today_in_tz()
     month_start = today.replace(day=1)
     result = await session.execute(
@@ -425,7 +483,10 @@ async def get_late_reason_analytics(session: AsyncSession) -> dict:
         .join(LateArrivalReason, LateArrivalReason.id == LateReasonEvaluation.late_reason_id)
         .join(Employee, Employee.id == LateArrivalReason.employee_id)
         .join(AttendanceRecord, AttendanceRecord.id == LateArrivalReason.attendance_id)
-        .where(AttendanceRecord.date >= month_start)
+        .where(
+            AttendanceRecord.date >= month_start,
+            Employee.id.in_(visible_user_ids(session, me)),
+        )
     )
     categories: dict[str, int] = {}
     by_dept: dict[str, dict[str, int]] = {}
@@ -442,12 +503,15 @@ async def get_late_reason_analytics(session: AsyncSession) -> dict:
     return {"top_categories": top_categories, "department_weak_invalid": by_dept}
 
 
-async def get_high_risk_employees(session: AsyncSession) -> list[dict]:
+async def get_high_risk_employees(session: AsyncSession, me: User) -> list[dict]:
     result = await session.execute(
         select(Employee, EmployeeReliabilityScore)
         .join(EmployeeReliabilityScore, EmployeeReliabilityScore.employee_id == Employee.id)
         .options(selectinload(Employee.department))
-        .where(EmployeeReliabilityScore.reliability_score < 70)
+        .where(
+            EmployeeReliabilityScore.reliability_score < 70,
+            Employee.id.in_(visible_user_ids(session, me)),
+        )
         .order_by(EmployeeReliabilityScore.reliability_score)
         .limit(20)
     )
@@ -473,8 +537,8 @@ async def get_high_risk_employees(session: AsyncSession) -> list[dict]:
     return rows
 
 
-async def get_department_discipline_ranking(session: AsyncSession) -> list[dict]:
-    stats = await get_department_stats(session)
+async def get_department_discipline_ranking(session: AsyncSession, me: User) -> list[dict]:
+    stats = await get_department_stats(session, me)
     return [
         {
             "department": s.department,
@@ -488,13 +552,16 @@ async def get_department_discipline_ranking(session: AsyncSession) -> list[dict]
     ]
 
 
-async def get_reason_pattern_alerts(session: AsyncSession) -> list[dict]:
+async def get_reason_pattern_alerts(session: AsyncSession, me: User) -> list[dict]:
     result = await session.execute(
         select(Employee, LateReasonEvaluation)
         .join(LateArrivalReason, LateArrivalReason.employee_id == Employee.id)
         .join(LateReasonEvaluation, LateReasonEvaluation.late_reason_id == LateArrivalReason.id)
         .options(selectinload(Employee.department))
-        .where(LateReasonEvaluation.pattern_detected.is_(True))
+        .where(
+            LateReasonEvaluation.pattern_detected.is_(True),
+            Employee.id.in_(visible_user_ids(session, me)),
+        )
         .order_by(LateReasonEvaluation.evaluated_at.desc())
         .limit(20)
     )

@@ -143,7 +143,7 @@ export function HeroCheckInCard({
     setCheckOut(null);
     setPhase("checking-in");
     try {
-      const res = await api.checkIn(employeeId);
+      const res = await api.checkIn();
       setCheckIn(res);
       refresh();
       setPhase("idle");
@@ -160,7 +160,7 @@ export function HeroCheckInCard({
     setError(null);
     setPhase("checking-out");
     try {
-      const res = await api.checkOut(employeeId);
+      const res = await api.checkOut();
       setCheckOut(res);
       refresh();
       setPhase("idle");
@@ -173,7 +173,6 @@ export function HeroCheckInCard({
   return (
     <>
       <LateReasonModal
-        employeeId={employeeId}
         open={showLateReasonModal}
         onComplete={() => {
           setShowLateReasonModal(false);

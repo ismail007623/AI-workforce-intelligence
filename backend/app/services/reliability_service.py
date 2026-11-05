@@ -118,6 +118,29 @@ async def get_reliability_score(session: AsyncSession, employee_db_id: int) -> i
     return result.scalar_one_or_none()
 
 
-async def get_reliability_map(session: AsyncSession) -> dict[int, int]:
-    result = await session.execute(select(EmployeeReliabilityScore))
+async def get_reliability_map(
+    session: AsyncSession, me=None
+) -> dict[int, int]:
+    """Return employee_id -> reliability score, scoped to the caller.
+
+    Args:
+        session: The database session.
+        me: The authenticated user, or None for an unscoped map
+            (only used by internal callers that already filtered
+            their employee list). Routers and services pass the
+            caller so another org's scores never leak in.
+
+    Returns:
+        A mapping of Employee id to reliability score.
+    """
+    if me is None:
+        result = await session.execute(select(EmployeeReliabilityScore))
+        return {row.employee_id: row.reliability_score for row in result.scalars().all()}
+    from backend.app.core.scoping import visible_user_ids
+
+    result = await session.execute(
+        select(EmployeeReliabilityScore).where(
+            EmployeeReliabilityScore.employee_id.in_(visible_user_ids(session, me))
+        )
+    )
     return {row.employee_id: row.reliability_score for row in result.scalars().all()}

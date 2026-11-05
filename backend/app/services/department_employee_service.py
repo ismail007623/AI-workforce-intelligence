@@ -6,7 +6,9 @@ from sqlalchemy.orm import selectinload
 from backend.app.agents.late_reason_graph import run_late_reason_pipeline
 from backend.app.core.config import get_settings
 from backend.app.models.attendance import AttendanceRecord, CheckInStatus
+from backend.app.core.scoping import visible_user_ids
 from backend.app.models.employee import Department, Employee
+from backend.app.models.user import User
 from backend.app.models.late_reason import (
     LateArrivalReason,
     LateReasonEvaluation,
@@ -177,11 +179,31 @@ async def _evaluation_status(session: AsyncSession, employee_db_id: int) -> str:
 
 async def get_department_employees(
     session: AsyncSession,
+    me: User,
     department_name: str,
     sort_by: str | None = None,
 ) -> list[dict]:
+    """Return one department's employees, scoped to the caller's org.
+
+    Args:
+        session: The database session.
+        me: The authenticated HR/Admin user.
+        department_name: The department to list.
+        sort_by: Optional sort key.
+
+    Returns:
+        One row per visible employee in the department.
+
+    Raises:
+        HTTPException: 404 when the department does not exist in
+            the caller's organization (a same-named department in
+            another org is not visible and not leaked).
+    """
     dept_result = await session.execute(
-        select(Department).where(Department.name == department_name)
+        select(Department).where(
+            Department.name == department_name,
+            Department.org_id == me.org_id,
+        )
     )
     department = dept_result.scalar_one_or_none()
     if department is None:
@@ -190,14 +212,17 @@ async def get_department_employees(
     emp_result = await session.execute(
         select(Employee)
         .options(selectinload(Employee.department))
-        .where(Employee.department_id == department.id)
+        .where(
+            Employee.department_id == department.id,
+            Employee.id.in_(visible_user_ids(session, me)),
+        )
     )
     employees = list(emp_result.scalars().all())
 
     if sort_by == "late":
         await _evaluate_pending_reasons(session, employees)
 
-    reliability_map = await reliability_service.get_reliability_map(session)
+    reliability_map = await reliability_service.get_reliability_map(session, me)
     rows: list[dict] = []
 
     for employee in employees:
