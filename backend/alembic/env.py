@@ -36,6 +36,8 @@ from backend.app.models import (
     LateArrivalReason,
     LateReasonEvaluation,
     PolicyUpload,
+    RefreshToken,
+    User,
 )
 
 target_metadata = Base.metadata

@@ -1,6 +1,9 @@
 import type {
   AbsentEmployee,
   AttendanceRecord,
+  AuthData,
+  AuthEnvelope,
+  AuthUser,
   CheckInResponse,
   CheckOutResponse,
   DailyTrendPoint,
@@ -12,10 +15,13 @@ import type {
   InsightsResponse,
   LateIntelligenceRecord,
   LateReasonSubmitResponse,
+  LoginPayload,
   PolicyChatApiResponse,
   PolicyHistoryItem,
   PolicyStatusResponse,
   PolicyUploadResponse,
+  SignupPayload,
+  TokenPair,
 } from "./types";
 
 const BASE = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/api/v1`;
@@ -29,33 +35,127 @@ export class ApiError extends Error {
   }
 }
 
-function getHrHeaders(): Record<string, string> {
-  if (typeof window === "undefined") return {};
-  const role = localStorage.getItem("awi.role");
-  if (role !== "hr") return {};
-  return { "X-AWI-Role": "hr", "X-AWI-User": "HR Admin" };
+// Token storage (POC choice): localStorage, matching the existing
+// session storage. Production follow-up: move tokens to httpOnly,
+// Secure, SameSite cookies set by the backend so JavaScript cannot
+// read them, and remove this client-side storage.
+const ACCESS_KEY = "awi.access_token";
+const REFRESH_KEY = "awi.refresh_token";
+
+export function getAccessToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(ACCESS_KEY);
+}
+
+export function getRefreshToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(REFRESH_KEY);
+}
+
+export function setTokens(tokens: TokenPair): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(ACCESS_KEY, tokens.access_token);
+  localStorage.setItem(REFRESH_KEY, tokens.refresh_token);
+}
+
+export function clearTokens(): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(ACCESS_KEY);
+  localStorage.removeItem(REFRESH_KEY);
+  localStorage.removeItem("awi.role");
+  localStorage.removeItem("awi.employee");
+}
+
+function authHeaders(): Record<string, string> {
+  const token = getAccessToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+function parseErrorDetail(body: unknown, fallback: string): string {
+  if (body && typeof body === "object") {
+    const detail = (body as { detail?: unknown; message?: unknown }).detail
+      ?? (body as { message?: unknown }).message;
+    if (typeof detail === "string") return detail;
+    if (detail !== undefined) return JSON.stringify(detail);
+  }
+  return fallback;
+}
+
+let refreshPromise: Promise<TokenPair> | null = null;
+
+async function refreshTokens(): Promise<TokenPair> {
+  if (refreshPromise) return refreshPromise;
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) {
+    clearTokens();
+    throw new ApiError("Your session has expired. Please sign in again.", 401);
+  }
+  refreshPromise = (async () => {
+    let res: Response;
+    try {
+      res = await fetch(`${BASE}/auth/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      });
+    } catch {
+      clearTokens();
+      throw new ApiError("Cannot reach the server. Is the API running?", 0);
+    }
+    if (!res.ok) {
+      clearTokens();
+      let detail = res.statusText;
+      try {
+        detail = parseErrorDetail(await res.json(), detail);
+      } catch {
+        /* ignore */
+      }
+      throw new ApiError(detail, res.status);
+    }
+    const envelope = (await res.json()) as AuthEnvelope<AuthData>;
+    setTokens(envelope.data.tokens);
+    return envelope.data.tokens;
+  })();
+  try {
+    return await refreshPromise;
+  } finally {
+    refreshPromise = null;
+  }
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  let res: Response;
-  try {
-    res = await fetch(`${BASE}${path}`, {
-      ...options,
-      headers: { "Content-Type": "application/json", ...getHrHeaders(), ...options?.headers },
-    });
-  } catch {
-    throw new ApiError("Cannot reach the server. Is the API running?", 0);
+  const isAuthCall = path.startsWith("/auth/");
+  const doFetch = async (): Promise<Response> => {
+    try {
+      return await fetch(`${BASE}${path}`, {
+        ...options,
+        headers: { "Content-Type": "application/json", ...authHeaders(), ...options?.headers },
+      });
+    } catch {
+      throw new ApiError("Cannot reach the server. Is the API running?", 0);
+    }
+  };
+
+  let res = await doFetch();
+  if (res.status === 401 && !isAuthCall && getRefreshToken()) {
+    try {
+      await refreshTokens();
+    } catch (error) {
+      if (error instanceof ApiError) throw error;
+      throw new ApiError("Your session has expired. Please sign in again.", 401);
+    }
+    res = await doFetch();
   }
 
   if (!res.ok) {
     let detail = res.statusText;
     try {
       const body = await res.json();
-      detail = body.detail ?? body.message ?? detail;
+      detail = parseErrorDetail(body, detail);
     } catch {
       /* ignore */
     }
-    throw new ApiError(typeof detail === "string" ? detail : JSON.stringify(detail), res.status);
+    throw new ApiError(detail, res.status);
   }
 
   if (res.status === 204) return undefined as T;
@@ -78,9 +178,8 @@ function uploadForm(
   const promise = new Promise<PolicyUploadResponse>((resolve, reject) => {
     xhr.open("POST", `${BASE}${path}`);
 
-    Object.entries(getHrHeaders()).forEach(([key, value]) => {
-      xhr.setRequestHeader(key, value);
-    });
+    const token = getAccessToken();
+    if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
 
     if (onUploadProgress) {
       xhr.upload.onprogress = (event) => {
@@ -107,11 +206,11 @@ function uploadForm(
       let detail = xhr.statusText;
       try {
         const body = JSON.parse(xhr.responseText);
-        detail = body.detail ?? body.message ?? detail;
+        detail = parseErrorDetail(body, detail);
       } catch {
         /* ignore */
       }
-      reject(new ApiError(typeof detail === "string" ? detail : JSON.stringify(detail), xhr.status));
+      reject(new ApiError(detail, xhr.status));
     };
 
     xhr.onerror = () => reject(new ApiError("Cannot reach the server. Is the API running?", 0));
@@ -126,6 +225,45 @@ function uploadForm(
 }
 
 export const api = {
+  signup: async (payload: SignupPayload): Promise<AuthData> => {
+    const envelope = await request<AuthEnvelope<AuthData>>("/auth/signup", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    return envelope.data;
+  },
+
+  login: async (payload: LoginPayload): Promise<AuthData> => {
+    const envelope = await request<AuthEnvelope<AuthData>>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    return envelope.data;
+  },
+
+  refreshTokens,
+
+  logout: async (): Promise<void> => {
+    const refreshToken = getRefreshToken();
+    try {
+      await request<AuthEnvelope<{ user_id: number }>>(
+        "/auth/logout",
+        refreshToken
+          ? { method: "POST", body: JSON.stringify({ refresh_token: refreshToken }) }
+          : { method: "POST" },
+      );
+    } catch {
+      /* best-effort: local session is cleared either way */
+    } finally {
+      clearTokens();
+    }
+  },
+
+  getMe: async (): Promise<AuthUser> => {
+    const envelope = await request<AuthEnvelope<AuthUser>>("/auth/me");
+    return envelope.data;
+  },
+
   getEmployees: () => request<Employee[]>("/employees"),
 
   checkIn: (employee_id: string) =>
@@ -183,16 +321,24 @@ export const api = {
   getPolicyHistory: () => request<PolicyHistoryItem[]>("/policy/history"),
 
   downloadPolicyDocument: async () => {
-    const res = await fetch(`${BASE}/policy/download`, { headers: getHrHeaders() });
+    let res = await fetch(`${BASE}/policy/download`, { headers: authHeaders() });
+    if (res.status === 401 && getRefreshToken()) {
+      try {
+        await refreshTokens();
+        res = await fetch(`${BASE}/policy/download`, { headers: authHeaders() });
+      } catch {
+        /* fall through to the error handling below */
+      }
+    }
     if (!res.ok) {
       let detail = res.statusText;
       try {
         const body = await res.json();
-        detail = body.detail ?? detail;
+        detail = parseErrorDetail(body, detail);
       } catch {
         /* ignore */
       }
-      throw new ApiError(typeof detail === "string" ? detail : String(detail), res.status);
+      throw new ApiError(detail, res.status);
     }
     const blob = await res.blob();
     const disposition = res.headers.get("Content-Disposition") ?? "";

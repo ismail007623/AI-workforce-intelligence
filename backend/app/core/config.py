@@ -42,6 +42,12 @@ class Settings(BaseSettings):
     smtp_from: str = ""
     hr_notify_email: str = ""
 
+    # JWT authentication (no default secret: auth fails fast when unset).
+    jwt_secret_key: str = ""
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 15
+    refresh_token_expire_days: int = 7
+
     # Reliability scoring (non-secret)
     reliability_late_penalty: int = 3
     reliability_absence_penalty: int = 5

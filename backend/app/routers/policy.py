@@ -1,15 +1,19 @@
-from fastapi import APIRouter, Depends, File, Header, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.core.database import get_db
-from backend.app.core.deps import require_hr_role
+from backend.app.core.auth_deps import JWTBearer, get_current_user, require_hr_role
+from backend.app.models.user import User
 from backend.app.core.logger import get_logger
 from backend.app.schemas.policy import PolicyHistoryItem, PolicyStatusResponse, PolicyUploadResponse
 from backend.app.services import policy_ingestion_service
 
 logger = get_logger(__name__)
-router = APIRouter(tags=["policy"], dependencies=[Depends(require_hr_role)])
+router = APIRouter(
+    tags=["policy"],
+    dependencies=[Depends(JWTBearer()), Depends(require_hr_role)],
+)
 
 
 @router.get("/policy/status", response_model=PolicyStatusResponse, response_model_exclude_none=True)
@@ -49,7 +53,7 @@ async def policy_download(session: AsyncSession = Depends(get_db)):
 async def policy_upload(
     file: UploadFile = File(...),
     session: AsyncSession = Depends(get_db),
-    x_awi_user: str = Header(default="HR Admin", alias="X-AWI-User"),
+    current_user: User = Depends(get_current_user),
 ):
     filename = file.filename or "document"
     logger.info("policy-upload requested for file=%s", filename)
@@ -63,7 +67,7 @@ async def policy_upload(
             session,
             filename,
             content,
-            uploaded_by=x_awi_user,
+            uploaded_by=current_user.name,
         )
         logger.info(
             "policy-upload completed file=%s chunks=%d pages=%d",

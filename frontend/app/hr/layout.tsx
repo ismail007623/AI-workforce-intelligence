@@ -8,13 +8,13 @@ import { hrNav } from "@/components/layout/nav";
 import { Splash } from "@/components/shared/Splash";
 
 export default function HrLayout({ children }: { children: React.ReactNode }) {
-  const { role, hydrated } = useSession();
+  const { role, user, hydrated } = useSession();
   const router = useRouter();
 
   useEffect(() => {
     if (!hydrated) return;
     if (role !== "hr") {
-      router.replace(role === "employee" ? "/employee" : "/");
+      router.replace(role === "employee" ? "/employee" : "/login");
     }
   }, [hydrated, role, router]);
 
@@ -23,7 +23,7 @@ export default function HrLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AppShell sections={hrNav} userName="HR Admin" userSubtitle="Workforce Manager">
+    <AppShell sections={hrNav} userName={user?.name ?? "HR Admin"} userSubtitle={user?.email ?? "Workforce Manager"}>
       {children}
     </AppShell>
   );

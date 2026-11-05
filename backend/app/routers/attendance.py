@@ -2,7 +2,14 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.agents.checkin_graph import run_checkin_pipeline
 from backend.app.core.database import get_db
-from backend.app.core.deps import require_hr_role
+from backend.app.core.auth_deps import (
+    JWTBearer,
+    get_current_user,
+    require_hr_role,
+    require_self_not_hr,
+    require_self_or_hr,
+)
+from backend.app.models.user import User
 from backend.app.models.attendance import CheckInStatus
 from backend.app.schemas.attendance import (
     AbsentEmployeeResponse,
@@ -26,7 +33,12 @@ router = APIRouter(prefix="/attendance", tags=["attendance"])
 
 
 @router.post("/check-in", response_model=CheckInResponse)
-async def check_in(payload: EmployeeActionRequest, session: AsyncSession = Depends(get_db)):
+async def check_in(
+    payload: EmployeeActionRequest,
+    session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+        await require_self_not_hr(session, current_user, payload.employee_id)
         logger.info("check-in requested for employee_id=%s", payload.employee_id)
         employee, record = await attendance_service.check_in(session, payload.employee_id)
         await session.commit()
@@ -76,14 +88,19 @@ async def check_in(payload: EmployeeActionRequest, session: AsyncSession = Depen
 
 
 @router.post("/late-reason", response_model=LateReasonSubmitResponse)
-async def submit_late_reason(payload: LateReasonSubmitRequest, session: AsyncSession = Depends(get_db)):
+async def submit_late_reason(
+    payload: LateReasonSubmitRequest,
+    session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    await require_self_not_hr(session, current_user, payload.employee_id)
     logger.info("late-reason submitted for employee_id=%s", payload.employee_id)
     result = await late_reason_service.submit_late_reason(session, payload.employee_id, payload.reason)
     await session.commit()
     return LateReasonSubmitResponse(**result)
 
 
-@router.get("/today/late-intelligence", response_model=list[LateIntelligenceRecord], dependencies=[Depends(require_hr_role)])
+@router.get("/today/late-intelligence", response_model=list[LateIntelligenceRecord], dependencies=[Depends(JWTBearer()), Depends(require_hr_role)])
 async def late_intelligence(
     sort_by: str = Query(default="late_minutes", pattern="^(risk|validity|late_minutes|reliability)$"),
     session: AsyncSession = Depends(get_db),
@@ -94,7 +111,12 @@ async def late_intelligence(
 
 
 @router.post("/check-out", response_model=CheckOutResponse)
-async def check_out(payload: EmployeeActionRequest, session: AsyncSession = Depends(get_db)):
+async def check_out(
+    payload: EmployeeActionRequest,
+    session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    await require_self_not_hr(session, current_user, payload.employee_id)
     logger.info("check-out requested for employee_id=%s", payload.employee_id)
     employee, record = await attendance_service.check_out(session, payload.employee_id)
     logger.info(
@@ -115,7 +137,7 @@ async def check_out(payload: EmployeeActionRequest, session: AsyncSession = Depe
     )
 
 
-@router.get("/today", response_model=list[AttendanceRecordResponse])
+@router.get("/today", response_model=list[AttendanceRecordResponse], dependencies=[Depends(JWTBearer()), Depends(require_hr_role)])
 async def list_today(
     status: CheckInStatus | None = Query(default=None),
     early_left: bool | None = Query(default=None),
@@ -142,7 +164,12 @@ async def list_today(
 
 
 @router.get("/employee/{employee_id}", response_model=list[AttendanceRecordResponse])
-async def employee_history(employee_id: str, session: AsyncSession = Depends(get_db)):
+async def employee_history(
+    employee_id: str,
+    session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    await require_self_or_hr(session, current_user, employee_id)
     logger.info("employee-history requested for employee_id=%s", employee_id)
     rows = await attendance_service.get_employee_history(session, employee_id)
     logger.info("employee-history returned %d records for employee_id=%s", len(rows), employee_id)
@@ -163,7 +190,7 @@ async def employee_history(employee_id: str, session: AsyncSession = Depends(get
     ]
 
 
-@router.get("/today/absent", response_model=list[AbsentEmployeeResponse])
+@router.get("/today/absent", response_model=list[AbsentEmployeeResponse], dependencies=[Depends(JWTBearer()), Depends(require_hr_role)])
 async def list_today_absent(session: AsyncSession = Depends(get_db)):
     logger.info("list-today-absent requested")
     rows = await stats_service.get_absent_employees_today(session)
@@ -172,7 +199,12 @@ async def list_today_absent(session: AsyncSession = Depends(get_db)):
 
 
 @router.get("/employee/{employee_id}/summary", response_model=EmployeeSummaryResponse)
-async def employee_summary(employee_id: str, session: AsyncSession = Depends(get_db)):
+async def employee_summary(
+    employee_id: str,
+    session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    await require_self_or_hr(session, current_user, employee_id)
     logger.info("employee-summary requested for employee_id=%s", employee_id)
     data = await stats_service.get_employee_summary(session, employee_id)
     logger.info("employee-summary retrieved for employee_id=%s", employee_id)

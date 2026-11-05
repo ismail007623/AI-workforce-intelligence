@@ -4,13 +4,17 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.core.database import get_db
-from backend.app.core.deps import require_hr_role
+from backend.app.core.auth_deps import JWTBearer, require_hr_role
 from backend.app.schemas.attendance import AbsentEmployeeResponse
 from backend.app.schemas.dashboard import DailyTrendPoint, DashboardSummary, DepartmentStats
 from backend.app.schemas.department_employees import DepartmentEmployeeRow
 from backend.app.services import department_employee_service, stats_service
 
-router = APIRouter(prefix="/dashboard", tags=["dashboard"])
+router = APIRouter(
+    prefix="/dashboard",
+    tags=["dashboard"],
+    dependencies=[Depends(JWTBearer()), Depends(require_hr_role)],
+)
 
 
 @router.get("/summary", response_model=DashboardSummary)
@@ -37,7 +41,7 @@ async def department_employees(
         pattern="^(late|punctual|absent)$",
     ),
     session: AsyncSession = Depends(get_db),
-    _: None = Depends(require_hr_role),
+    _hr = Depends(require_hr_role),
 ):
     rows = await department_employee_service.get_department_employees(
         session, department_name, sort_by=sort_by

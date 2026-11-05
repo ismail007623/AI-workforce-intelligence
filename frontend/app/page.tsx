@@ -194,7 +194,7 @@ export default function LandingPage() {
             <Bell className="mx-auto h-10 w-10 text-white/90" />
             <h2 className="mt-4 text-3xl font-bold text-white">Ready to see it in action?</h2>
             <p className="mx-auto mt-2 max-w-xl text-white/80">
-              Pick a role above to explore the employee portal or the HR command center.
+              Sign in to explore the employee portal or the HR command center.
             </p>
             <Link
               href="#get-started"

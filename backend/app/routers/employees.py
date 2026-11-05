@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.agents.insights_agent import run_insights_query
+from backend.app.core.auth_deps import JWTBearer, require_hr_role
 from backend.app.core.database import get_db
 from backend.app.core.logger import get_logger
 from backend.app.schemas.employee import EmployeeCreate, EmployeeResponse
@@ -9,7 +10,10 @@ from backend.app.schemas.insights import InsightsQueryRequest, InsightsResponse
 from backend.app.services import employee_service
 
 logger = get_logger(__name__)
-router = APIRouter(tags=["employees", "insights"])
+router = APIRouter(
+    tags=["employees", "insights"],
+    dependencies=[Depends(JWTBearer()), Depends(require_hr_role)],
+)
 
 
 @router.get("/employees", response_model=list[EmployeeResponse])

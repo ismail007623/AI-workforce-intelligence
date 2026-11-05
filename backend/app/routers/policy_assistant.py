@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
 from backend.app.schemas.policy_chatbot import PolicyChatRequest
 from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.utils.time_rules import generate_conversation_id
 from backend.app.agents.policy_assistant_graph import AgentState, policy_graph
+from backend.app.core.auth_deps import require_self_or_hr, resolve_current_user
 from backend.app.core.database import get_db
 from backend.app.core.logger import get_logger
+from backend.app.models.user import UserRole
 from backend.app.services.policy_assistant_service import get_last_n_messages, save_message
 
 logger = get_logger(__name__)
@@ -19,8 +20,17 @@ router = APIRouter(tags=["policy-assistant"])
 async def policy_chat(
     req: PolicyChatRequest,
     session: AsyncSession = Depends(get_db),
+    authorization: str | None = Header(default=None),
 ):
     try:
+        if not authorization or not authorization.lower().startswith("bearer "):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Not authenticated.",
+            )
+        current_user = await resolve_current_user(session, authorization[7:].strip())
+        if current_user.role != UserRole.hr:
+            await require_self_or_hr(session, current_user, req.employee_id)
         logger.info("Entering policy-chat API for employee %s conversation %s", req.employee_id, req.conversation_id)
         conversation_id = req.conversation_id
         employee_id = req.employee_id
@@ -66,14 +76,25 @@ async def policy_chat(
             status_code=status.HTTP_200_OK,
         )
 
+    except HTTPException as exc:
+        logger.error("Fail policy-chat API for employee %s: %s", req.employee_id, exc.detail)
+        return JSONResponse(
+            content={
+                "succeed": False,
+                "status": exc.status_code,
+                "message": str(exc.detail),
+                "data": None,
+            },
+            status_code=exc.status_code,
+        )
     except Exception as e:
         logger.error("Fail policy-chat API for employee %s: %s", req.employee_id, e)
         return JSONResponse(
             content={
                 "succeed": False,
-                "status": status.HTTP_404_NOT_FOUND,
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
                 "message": "Failed to get answer",
-                "data": None
+                "data": None,
             },
-            status_code=status.HTTP_404_NOT_FOUND,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )

@@ -13,9 +13,9 @@ export default function EmployeeLayout({ children }: { children: React.ReactNode
 
   useEffect(() => {
     if (!hydrated) return;
-    // Access control: only an employee with a selected profile may enter.
+    // Access control: only a signed-in employee with a linked record may enter.
     if (role !== "employee" || !employee) {
-      router.replace(role === "hr" ? "/hr" : "/");
+      router.replace(role === "hr" ? "/hr" : "/login");
     }
   }, [hydrated, role, employee, router]);
 

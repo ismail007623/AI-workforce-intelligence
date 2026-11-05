@@ -1,6 +1,53 @@
 export type CheckInStatus = "present" | "late" | "absent";
 export type CheckOutStatus = "on_time" | "early_left";
 export type UserRole = "employee" | "hr";
+export type AuthRole = UserRole;
+
+export interface AuthUser {
+  id: number;
+  name: string;
+  email: string;
+  role: UserRole;
+  employee_id: string | null;
+  department: string | null;
+  is_active: boolean;
+}
+
+export interface TokenPair {
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+  expires_in: number;
+}
+
+export interface AuthData {
+  user: AuthUser;
+  tokens: TokenPair;
+}
+
+export interface LoginPayload {
+  email: string;
+  password: string;
+}
+
+export interface SignupPayload {
+  name: string;
+  email: string;
+  password: string;
+  role: UserRole;
+  department?: string;
+  employee_id?: string;
+}
+
+export interface RefreshPayload {
+  refresh_token: string;
+}
+
+export interface AuthEnvelope<T> {
+  data: T;
+  message: string;
+  status: "success" | "error";
+}
 
 export interface Employee {
   employee_id: string;

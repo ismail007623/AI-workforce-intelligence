@@ -3,14 +3,17 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.core.database import Base, engine
-from backend.app.models import (  
+from backend.app.models import (
     ChatMessage,
     EmployeeReliabilityScore,
     LateArrivalReason,
     LateReasonEvaluation,
     PolicyUpload,
+    RefreshToken,
+    User,
 )
 from backend.app.routers import attendance, dashboard, employees, policy
+from backend.app.routers import auth
 from backend.app.routers import policy_assistant
 
 
@@ -36,6 +39,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router, prefix="/api/v1")
 app.include_router(attendance.router, prefix="/api/v1")
 app.include_router(dashboard.router, prefix="/api/v1")
 app.include_router(employees.router, prefix="/api/v1")

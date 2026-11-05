@@ -1,63 +1,105 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import type { Employee, UserRole } from "./types";
+import { api, clearTokens, getRefreshToken, setTokens } from "./api";
+import type { AuthUser, Employee, LoginPayload, SignupPayload, UserRole } from "./types";
 
 interface SessionState {
   role: UserRole | null;
+  user: AuthUser | null;
   employee: Employee | null;
   hydrated: boolean;
-  setEmployeeSession: (employee: Employee) => void;
-  setHrSession: () => void;
+  loading: boolean;
+  login: (payload: LoginPayload) => Promise<AuthUser>;
+  signup: (payload: SignupPayload) => Promise<AuthUser>;
+  logout: () => Promise<void>;
   clearSession: () => void;
 }
 
 const SessionContext = createContext<SessionState | undefined>(undefined);
 
-const ROLE_KEY = "awi.role";
-const EMP_KEY = "awi.employee";
+function employeeFromUser(user: AuthUser): Employee | null {
+  if (!user.employee_id) return null;
+  return {
+    employee_id: user.employee_id,
+    name: user.name,
+    email: user.email,
+    department: user.department ?? "",
+  };
+}
 
 export function SessionProvider({ children }: { children: React.ReactNode }) {
-  const [role, setRole] = useState<UserRole | null>(null);
-  const [employee, setEmployee] = useState<Employee | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const role = user?.role ?? null;
+  const employee = user ? employeeFromUser(user) : null;
 
   useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        localStorage.removeItem("awi.role");
+        localStorage.removeItem("awi.employee");
+        if (getRefreshToken()) {
+          const me = await api.getMe();
+          if (!cancelled) setUser(me);
+        }
+      } catch {
+        if (!cancelled) setUser(null);
+      } finally {
+        if (!cancelled) setHydrated(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const login = useCallback(async (payload: LoginPayload) => {
+    setLoading(true);
     try {
-      const storedRole = localStorage.getItem(ROLE_KEY) as UserRole | null;
-      const storedEmp = localStorage.getItem(EMP_KEY);
-      if (storedRole) setRole(storedRole);
-      if (storedEmp) setEmployee(JSON.parse(storedEmp));
-    } catch {
-      /* ignore */
+      const data = await api.login(payload);
+      setTokens(data.tokens);
+      setUser(data.user);
+      setHydrated(true);
+      return data.user;
+    } finally {
+      setLoading(false);
     }
+  }, []);
+
+  const signup = useCallback(async (payload: SignupPayload) => {
+    setLoading(true);
+    try {
+      const data = await api.signup(payload);
+      setTokens(data.tokens);
+      setUser(data.user);
+      setHydrated(true);
+      return data.user;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const clearSession = useCallback(() => {
+    clearTokens();
+    setUser(null);
     setHydrated(true);
   }, []);
 
-  const setEmployeeSession = (emp: Employee) => {
-    setRole("employee");
-    setEmployee(emp);
-    localStorage.setItem(ROLE_KEY, "employee");
-    localStorage.setItem(EMP_KEY, JSON.stringify(emp));
-  };
-
-  const setHrSession = () => {
-    setRole("hr");
-    setEmployee(null);
-    localStorage.setItem(ROLE_KEY, "hr");
-    localStorage.removeItem(EMP_KEY);
-  };
-
-  const clearSession = () => {
-    setRole(null);
-    setEmployee(null);
-    localStorage.removeItem(ROLE_KEY);
-    localStorage.removeItem(EMP_KEY);
-  };
+  const logout = useCallback(async () => {
+    try {
+      await api.logout();
+    } finally {
+      clearSession();
+    }
+  }, [clearSession]);
 
   return (
     <SessionContext.Provider
-      value={{ role, employee, hydrated, setEmployeeSession, setHrSession, clearSession }}
+      value={{ role, user, employee, hydrated, loading, login, signup, logout, clearSession }}
     >
       {children}
     </SessionContext.Provider>

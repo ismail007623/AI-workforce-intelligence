@@ -8,6 +8,7 @@ from backend.app.models.late_reason import (
     LateReasonStatus,
 )
 from backend.app.models.policy_upload import PolicyUpload
+from backend.app.models.user import RefreshToken, User, UserRole
 
 __all__ = [
     "Department",
@@ -22,4 +23,7 @@ __all__ = [
     "LateReasonStatus",
     "EmployeeReliabilityScore",
     "ChatMessage",
+    "User",
+    "UserRole",
+    "RefreshToken",
 ]

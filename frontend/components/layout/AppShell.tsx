@@ -97,12 +97,12 @@ function SidebarBody({
   onNavigate?: () => void;
   onComingSoon: (label: string) => void;
 }) {
-  const { clearSession } = useSession();
+  const { logout } = useSession();
   const router = useRouter();
 
-  const handleSwitch = () => {
-    clearSession();
-    router.push("/");
+  const handleSwitch = async () => {
+    await logout();
+    router.push("/login");
   };
 
   return (
