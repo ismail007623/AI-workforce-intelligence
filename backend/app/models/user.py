@@ -14,6 +14,7 @@ class UserRole(str, enum.Enum):
 
     employee = "employee"
     hr = "hr"
+    admin = "admin"
 
 
 class User(Base):
@@ -31,6 +32,9 @@ class User(Base):
     employee_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("employees.id"), unique=True, nullable=True
     )
+    org_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("organizations.id"), nullable=True, index=True
+    )
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
@@ -40,6 +44,7 @@ class User(Base):
     )
 
     employee = relationship("Employee")
+    organization = relationship("Organization", back_populates="users")
     refresh_tokens = relationship(
         "RefreshToken", back_populates="user", cascade="all, delete-orphan"
     )

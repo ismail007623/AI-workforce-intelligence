@@ -33,8 +33,10 @@ config.set_main_option("sqlalchemy.url", database_url)
 from backend.app.core.database import Base
 from backend.app.models import (
     EmployeeReliabilityScore,
+    Invitation,
     LateArrivalReason,
     LateReasonEvaluation,
+    Organization,
     PolicyUpload,
     RefreshToken,
     User,

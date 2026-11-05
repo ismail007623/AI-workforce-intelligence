@@ -1,13 +1,16 @@
 export type CheckInStatus = "present" | "late" | "absent";
 export type CheckOutStatus = "on_time" | "early_left";
-export type UserRole = "employee" | "hr";
+export type UserRole = "employee" | "hr" | "admin";
 export type AuthRole = UserRole;
+export type InviteRole = "hr" | "admin";
 
 export interface AuthUser {
   id: number;
   name: string;
   email: string;
   role: UserRole;
+  org_id: number | null;
+  organization_name: string | null;
   employee_id: string | null;
   department: string | null;
   is_active: boolean;
@@ -34,9 +37,44 @@ export interface SignupPayload {
   name: string;
   email: string;
   password: string;
-  role: UserRole;
-  department?: string;
   employee_id?: string;
+}
+
+export interface CompanySignupPayload {
+  company_name: string;
+  admin_name: string;
+  email: string;
+  password: string;
+  timezone?: string;
+  work_start?: string;
+  work_end?: string;
+  grace_minutes?: number;
+}
+
+export interface InvitationCreatePayload {
+  email: string;
+  role: InviteRole;
+}
+
+export interface InvitationAcceptPayload {
+  token: string;
+  name: string;
+  password: string;
+}
+
+export interface Invitation {
+  id: number;
+  org_id: number;
+  email: string;
+  role: InviteRole;
+  expires_at: string;
+  used_at: string | null;
+  created_at: string;
+}
+
+export interface InvitationCreated {
+  invitation: Invitation;
+  token: string;
 }
 
 export interface RefreshPayload {

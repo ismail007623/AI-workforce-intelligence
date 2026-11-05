@@ -28,6 +28,7 @@ class AttendanceRecord(Base):
 
     id = Column(Integer, primary_key=True)
     employee_id = Column(Integer, ForeignKey("employees.id"), nullable=False, index=True)
+    org_id = Column(Integer, ForeignKey("organizations.id"), nullable=True, index=True)
     date = Column(Date, nullable=False, index=True)
     check_in_time = Column(DateTime(timezone=True), nullable=True)
     check_out_time = Column(DateTime(timezone=True), nullable=True)

@@ -105,24 +105,67 @@ async def get_current_user(
 async def require_hr_role(
     current_user: User = Depends(get_current_user),
 ) -> User:
-    """FastAPI dependency requiring the HR role.
+    """FastAPI dependency requiring the HR role or Admin.
+
+    Admin is a superset of HR: admins may do everything HR can.
 
     Args:
         current_user: The authenticated user resolved by
             :func:`get_current_user`.
 
     Returns:
-        The authenticated HR user.
+        The authenticated HR or Admin user.
 
     Raises:
-        HTTPException: 403 when the user is not HR.
+        HTTPException: 403 when the user is neither HR nor Admin.
     """
-    if current_user.role != UserRole.hr:
+    if current_user.role not in (UserRole.hr, UserRole.admin):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="HR access required.",
         )
     return current_user
+
+
+async def require_admin_role(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """FastAPI dependency requiring the Admin role.
+
+    Args:
+        current_user: The authenticated user resolved by
+            :func:`get_current_user`.
+
+    Returns:
+        The authenticated Admin user.
+
+    Raises:
+        HTTPException: 403 when the user is not Admin.
+    """
+    if current_user.role != UserRole.admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required.",
+        )
+    return current_user
+
+
+async def require_hr_or_admin(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """FastAPI dependency requiring the HR or Admin role.
+
+    Args:
+        current_user: The authenticated user resolved by
+            :func:`get_current_user`.
+
+    Returns:
+        The authenticated HR or Admin user.
+
+    Raises:
+        HTTPException: 403 when the user is neither HR nor Admin.
+    """
+    return await require_hr_role(current_user)
 
 
 async def _own_employee_code(session: AsyncSession, user: User) -> str | None:
@@ -146,7 +189,11 @@ async def _own_employee_code(session: AsyncSession, user: User) -> str | None:
 async def require_self_or_hr(
     session: AsyncSession, current_user: User, employee_id: str
 ) -> User:
-    """Allow HR users, or employees acting on their own record only.
+    """Allow HR/Admin users, or employees acting on their own record only.
+
+    HR and Admin users may access any employee record in their
+    organization; employees may access only their own record.
+    (Organization scoping of HR/Admin access is Phase 2 work.)
 
     Args:
         session: The database session.
@@ -160,7 +207,7 @@ async def require_self_or_hr(
         HTTPException: 403 when an employee accesses another
             employee's record.
     """
-    if current_user.role == UserRole.hr:
+    if current_user.role in (UserRole.hr, UserRole.admin):
         return current_user
     own_code = await _own_employee_code(session, current_user)
     if own_code is None or own_code != employee_id:
@@ -174,7 +221,7 @@ async def require_self_or_hr(
 async def require_self_not_hr(
     session: AsyncSession, current_user: User, employee_id: str
 ) -> User:
-    """Allow only the owning employee (never HR) for check-in/out actions.
+    """Allow only the owning employee (never HR/Admin) for check-in/out actions.
 
     Args:
         session: The database session.
@@ -185,10 +232,10 @@ async def require_self_not_hr(
         The authenticated user.
 
     Raises:
-        HTTPException: 403 when an HR account attempts the action or
-            an employee acts on another employee's record.
+        HTTPException: 403 when an HR or Admin account attempts the
+            action or an employee acts on another employee's record.
     """
-    if current_user.role == UserRole.hr:
+    if current_user.role in (UserRole.hr, UserRole.admin):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="HR accounts cannot check in or out.",

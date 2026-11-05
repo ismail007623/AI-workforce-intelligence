@@ -11,13 +11,18 @@ from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.core.auth_deps import JWTBearer, get_current_user
+from backend.app.core.auth_deps import JWTBearer, get_current_user, require_hr_or_admin
 from backend.app.core.database import get_db
 from backend.app.core.logger import get_logger
 from backend.app.models.user import User
 from backend.app.schemas.auth import (
     AuthData,
     AuthUserResponse,
+    CompanySignupRequest,
+    InvitationAcceptRequest,
+    InvitationCreatedResponse,
+    InvitationCreateRequest,
+    InvitationResponse,
     LoginRequest,
     RefreshRequest,
     SignupRequest,
@@ -46,6 +51,34 @@ def _error_response(message: str, status_code: int) -> JSONResponse:
     )
 
 
+@auth_router.post("/company-signup")
+async def company_signup(
+    request: Request,
+    payload: CompanySignupRequest,
+    session: AsyncSession = Depends(get_db),
+):
+    try:
+        result: AuthData = await auth_service.company_signup(session, payload)
+        await session.commit()
+        return JSONResponse(
+            content={
+                "data": result.model_dump(mode="json"),
+                "message": "Company created successfully!",
+                "status": "success",
+            },
+            status_code=status.HTTP_201_CREATED,
+        )
+    except HTTPException as exc:
+        logger.error(f"Error while signing up company: {exc.detail}")
+        return _error_response(str(exc.detail), exc.status_code)
+    except Exception as e:
+        logger.error(f"Error while signing up company: {e}")
+        return _error_response(
+            "Failed to create company. Please try again.",
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
 @auth_router.post("/signup")
 async def signup(
     request: Request,
@@ -70,6 +103,94 @@ async def signup(
         logger.error(f"Error while signing up: {e}")
         return _error_response(
             "Failed to create account. Please try again.",
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+@auth_router.post("/invitations")
+async def create_invitation(
+    request: Request,
+    payload: InvitationCreateRequest,
+    session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_hr_or_admin),
+):
+    try:
+        result: InvitationCreatedResponse = await auth_service.create_invitation(
+            session, current_user, payload
+        )
+        await session.commit()
+        return JSONResponse(
+            content={
+                "data": result.model_dump(mode="json"),
+                "message": "Invitation created successfully! Share the token once; it will not be shown again.",
+                "status": "success",
+            },
+            status_code=status.HTTP_201_CREATED,
+        )
+    except HTTPException as exc:
+        logger.error(f"Error while creating invitation: {exc.detail}")
+        return _error_response(str(exc.detail), exc.status_code)
+    except Exception as e:
+        logger.error(f"Error while creating invitation: {e}")
+        return _error_response(
+            "Failed to create invitation. Please try again.",
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+@auth_router.get("/invitations")
+async def list_invitations(
+    request: Request,
+    session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_hr_or_admin),
+):
+    try:
+        result: list[InvitationResponse] = await auth_service.list_invitations(
+            session, current_user
+        )
+        return JSONResponse(
+            content={
+                "data": [item.model_dump(mode="json") for item in result],
+                "message": "Response Generated Successfully!",
+                "status": "success",
+            },
+            status_code=status.HTTP_200_OK,
+        )
+    except HTTPException as exc:
+        logger.error(f"Error while listing invitations: {exc.detail}")
+        return _error_response(str(exc.detail), exc.status_code)
+    except Exception as e:
+        logger.error(f"Error while listing invitations: {e}")
+        return _error_response(
+            "Failed to list invitations. Please try again.",
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+@auth_router.post("/invitations/accept")
+async def accept_invitation(
+    request: Request,
+    payload: InvitationAcceptRequest,
+    session: AsyncSession = Depends(get_db),
+):
+    try:
+        result: AuthData = await auth_service.accept_invitation(session, payload)
+        await session.commit()
+        return JSONResponse(
+            content={
+                "data": result.model_dump(mode="json"),
+                "message": "Invitation accepted successfully!",
+                "status": "success",
+            },
+            status_code=status.HTTP_201_CREATED,
+        )
+    except HTTPException as exc:
+        logger.error(f"Error while accepting invitation: {exc.detail}")
+        return _error_response(str(exc.detail), exc.status_code)
+    except Exception as e:
+        logger.error(f"Error while accepting invitation: {e}")
+        return _error_response(
+            "Failed to accept invitation. Please try again.",
             status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 

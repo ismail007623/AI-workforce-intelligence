@@ -11,6 +11,11 @@ Required environment variables (never commit them)::
 The password is never logged. When the variables are missing, or the
 account already exists, the script prints a message and exits without
 changing anything.
+
+The seeded HR user is assigned to the first organization, or to a
+newly created "Default Organization" when none exists. This is only
+a bootstrap for existing single-company databases; the normal way to
+create an admin account is company signup (POST /auth/company-signup).
 """
 
 import asyncio
@@ -21,9 +26,44 @@ from sqlalchemy import select
 from backend.app.core.database import async_session_factory
 from backend.app.core.logger import get_logger
 from backend.app.core.security import hash_password
+from backend.app.models.organization import Organization, generate_pinecone_namespace
 from backend.app.models.user import User, UserRole
 
 logger = get_logger(__name__)
+
+
+async def get_or_create_default_organization(session) -> Organization:
+    """Return the first organization, creating a default one if needed.
+
+    Args:
+        session: The database session.
+
+    Returns:
+        The first organization ordered by id, or a newly created
+        "Default Organization" (Asia/Karachi, 10:00-19:00, 15 min
+        grace) when no organization exists yet.
+    """
+    result = await session.execute(
+        select(Organization).order_by(Organization.id).limit(1)
+    )
+    organization = result.scalar_one_or_none()
+    if organization is not None:
+        return organization
+    organization = Organization(
+        name="Default Organization",
+        timezone="Asia/Karachi",
+        work_start="10:00",
+        work_end="19:00",
+        grace_minutes=15,
+        pinecone_namespace=generate_pinecone_namespace(),
+    )
+    session.add(organization)
+    await session.flush()
+    logger.info(
+        "Default organization created successfully for org_id=%s.",
+        organization.id,
+    )
+    return organization
 
 
 async def seed_hr_user() -> int:
@@ -47,6 +87,7 @@ async def seed_hr_user() -> int:
         if result.scalar_one_or_none() is not None:
             print(f"Seed HR account already exists for email: {email}")
             return 0
+        organization = await get_or_create_default_organization(session)
         session.add(
             User(
                 name=name,
@@ -54,6 +95,7 @@ async def seed_hr_user() -> int:
                 hashed_password=hash_password(password),
                 role=UserRole.hr,
                 employee_id=None,
+                org_id=organization.id,
                 is_active=True,
             )
         )

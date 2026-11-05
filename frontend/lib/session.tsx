@@ -2,7 +2,15 @@
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { api, clearTokens, getRefreshToken, setTokens } from "./api";
-import type { AuthUser, Employee, LoginPayload, SignupPayload, UserRole } from "./types";
+import type {
+  AuthUser,
+  CompanySignupPayload,
+  Employee,
+  InvitationAcceptPayload,
+  LoginPayload,
+  SignupPayload,
+  UserRole,
+} from "./types";
 
 interface SessionState {
   role: UserRole | null;
@@ -12,6 +20,8 @@ interface SessionState {
   loading: boolean;
   login: (payload: LoginPayload) => Promise<AuthUser>;
   signup: (payload: SignupPayload) => Promise<AuthUser>;
+  companySignup: (payload: CompanySignupPayload) => Promise<AuthUser>;
+  acceptInvitation: (payload: InvitationAcceptPayload) => Promise<AuthUser>;
   logout: () => Promise<void>;
   clearSession: () => void;
 }
@@ -83,6 +93,32 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const companySignup = useCallback(async (payload: CompanySignupPayload) => {
+    setLoading(true);
+    try {
+      const data = await api.companySignup(payload);
+      setTokens(data.tokens);
+      setUser(data.user);
+      setHydrated(true);
+      return data.user;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const acceptInvitation = useCallback(async (payload: InvitationAcceptPayload) => {
+    setLoading(true);
+    try {
+      const data = await api.acceptInvitation(payload);
+      setTokens(data.tokens);
+      setUser(data.user);
+      setHydrated(true);
+      return data.user;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const clearSession = useCallback(() => {
     clearTokens();
     setUser(null);
@@ -99,7 +135,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <SessionContext.Provider
-      value={{ role, user, employee, hydrated, loading, login, signup, logout, clearSession }}
+      value={{ role, user, employee, hydrated, loading, login, signup, companySignup, acceptInvitation, logout, clearSession }}
     >
       {children}
     </SessionContext.Provider>

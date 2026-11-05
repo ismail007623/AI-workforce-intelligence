@@ -7,8 +7,7 @@ import { Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
 import { Logo } from "@/components/layout/Logo";
 import { ApiError } from "@/lib/api";
 import { useSession } from "@/lib/session";
-import type { SignupPayload, UserRole } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import type { SignupPayload } from "@/lib/types";
 
 const inputClass =
   "h-11 w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-white px-3 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary-light)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/15";
@@ -23,8 +22,6 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState<UserRole>("employee");
-  const [department, setDepartment] = useState("");
   const [employeeId, setEmployeeId] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -39,21 +36,19 @@ export default function SignupPage() {
       setError("Password must be at least 8 characters.");
       return;
     }
+    if (!employeeId.trim()) {
+      setError("Employee ID is required. Ask HR for your employee ID.");
+      return;
+    }
     const payload: SignupPayload = {
       name: name.trim(),
       email: email.trim(),
       password,
-      role,
-      ...(role === "employee"
-        ? {
-            department: department.trim() || undefined,
-            employee_id: employeeId.trim() || undefined,
-          }
-        : {}),
+      employee_id: employeeId.trim(),
     };
     try {
       const user = await signup(payload);
-      router.push(user.role === "hr" ? "/hr" : "/employee");
+      router.push(user.role === "employee" ? "/employee" : "/hr");
     } catch (err) {
       setError(
         err instanceof ApiError
@@ -120,74 +115,30 @@ export default function SignupPage() {
               />
             </div>
 
-            <fieldset>
-              <legend className={labelClass}>Account type</legend>
-              <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Account type">
-                {(
-                  [
-                    { value: "employee", label: "Employee" },
-                    { value: "hr", label: "HR / Manager" },
-                  ] as const
-                ).map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    role="radio"
-                    aria-checked={role === option.value}
-                    onClick={() => setRole(option.value)}
-                    className={cn(
-                      "h-11 rounded-[var(--radius-md)] border text-sm font-semibold transition-colors",
-                      role === option.value
-                        ? "border-[var(--color-primary)] bg-[var(--color-primary-xlight)] text-[var(--color-primary)]"
-                        : "border-[var(--color-border)] bg-white text-[var(--color-text-secondary)] hover:border-[var(--color-primary-light)]",
-                    )}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
+            <p className="rounded-[var(--radius-md)] bg-[var(--color-bg-page)] px-3 py-2.5 text-xs leading-relaxed text-[var(--color-text-muted)]">
+              Employee only. Your account links to your existing employee
+              record. HR accounts are by invite only.
+            </p>
 
-            {role === "employee" && (
-              <>
-                <div>
-                  <label htmlFor="department" className={labelClass}>
-                    Department
-                  </label>
-                  <input
-                    id="department"
-                    type="text"
-                    value={department}
-                    onChange={(e) => setDepartment(e.target.value)}
-                    placeholder="Engineering"
-                    className={inputClass}
-                  />
-                  <p className="mt-1 text-xs text-[var(--color-text-muted)]">
-                    Required only if you do not have an employee record yet.
-                    Leave it blank to link by email.
-                  </p>
-                </div>
-                <div>
-                  <label htmlFor="employee-id" className={labelClass}>
-                    Employee ID (optional)
-                  </label>
-                  <input
-                    id="employee-id"
-                    type="text"
-                    value={employeeId}
-                    onChange={(e) => setEmployeeId(e.target.value)}
-                    placeholder="EMP003"
-                    className={inputClass}
-                  />
-                </div>
-              </>
-            )}
-            {role === "hr" && (
-              <p className="rounded-[var(--radius-md)] bg-[var(--color-bg-page)] px-3 py-2.5 text-xs leading-relaxed text-[var(--color-text-muted)]">
-                HR accounts have no employee record and can view the whole
-                workforce.
+            <div>
+              <label htmlFor="employee-id" className={labelClass}>
+                Employee ID
+              </label>
+              <input
+                id="employee-id"
+                type="text"
+                autoComplete="off"
+                required
+                value={employeeId}
+                onChange={(e) => setEmployeeId(e.target.value)}
+                placeholder="EMP003"
+                className={inputClass}
+              />
+              <p className="mt-1 text-xs text-[var(--color-text-muted)]">
+                Your employee ID from HR. If it does not match, we try your
+                email against the employee record.
               </p>
-            )}
+            </div>
 
             <div>
               <label htmlFor="password" className={labelClass}>
@@ -252,8 +203,8 @@ export default function SignupPage() {
           </p>
           <p className="mt-4 flex items-start gap-1.5 text-xs leading-relaxed text-[var(--color-text-muted)]">
             <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            HR signup is open in this POC. Restrict HR account creation
-            before giving access to real clients.
+            Employee accounts only. HR and Admin accounts are created by
+            invite from an existing HR or Admin.
           </p>
         </div>
         <p className="mt-4 text-center text-xs text-[var(--color-text-muted)]">

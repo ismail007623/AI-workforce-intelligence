@@ -13,12 +13,12 @@ export default function HrLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!hydrated) return;
-    if (role !== "hr") {
+    if (role !== "hr" && role !== "admin") {
       router.replace(role === "employee" ? "/employee" : "/login");
     }
   }, [hydrated, role, router]);
 
-  if (!hydrated || role !== "hr") {
+  if (!hydrated || (role !== "hr" && role !== "admin")) {
     return <Splash label="Opening HR command center..." />;
   }
 

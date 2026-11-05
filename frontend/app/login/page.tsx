@@ -26,7 +26,7 @@ export default function LoginPage() {
     setError(null);
     try {
       const user = await login({ email: email.trim(), password });
-      router.push(user.role === "hr" ? "/hr" : "/employee");
+      router.push(user.role === "hr" || user.role === "admin" ? "/hr" : "/employee");
     } catch (err) {
       setError(
         err instanceof ApiError

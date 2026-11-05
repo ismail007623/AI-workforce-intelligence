@@ -6,6 +6,7 @@ import type {
   AuthUser,
   CheckInResponse,
   CheckOutResponse,
+  CompanySignupPayload,
   DailyTrendPoint,
   DashboardSummary,
   DepartmentStats,
@@ -13,6 +14,10 @@ import type {
   Employee,
   EmployeeSummary,
   InsightsResponse,
+  Invitation,
+  InvitationAcceptPayload,
+  InvitationCreatePayload,
+  InvitationCreated,
   LateIntelligenceRecord,
   LateReasonSubmitResponse,
   LoginPayload,
@@ -227,6 +232,35 @@ function uploadForm(
 export const api = {
   signup: async (payload: SignupPayload): Promise<AuthData> => {
     const envelope = await request<AuthEnvelope<AuthData>>("/auth/signup", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    return envelope.data;
+  },
+
+  companySignup: async (payload: CompanySignupPayload): Promise<AuthData> => {
+    const envelope = await request<AuthEnvelope<AuthData>>("/auth/company-signup", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    return envelope.data;
+  },
+
+  createInvitation: async (payload: InvitationCreatePayload): Promise<InvitationCreated> => {
+    const envelope = await request<AuthEnvelope<InvitationCreated>>("/auth/invitations", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    return envelope.data;
+  },
+
+  listInvitations: async (): Promise<Invitation[]> => {
+    const envelope = await request<AuthEnvelope<Invitation[]>>("/auth/invitations");
+    return envelope.data;
+  },
+
+  acceptInvitation: async (payload: InvitationAcceptPayload): Promise<AuthData> => {
+    const envelope = await request<AuthEnvelope<AuthData>>("/auth/invitations/accept", {
       method: "POST",
       body: JSON.stringify(payload),
     });
