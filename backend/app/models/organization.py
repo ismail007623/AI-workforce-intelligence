@@ -8,7 +8,7 @@ never from client input.
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.core.database import Base
@@ -46,6 +46,9 @@ class Organization(Base):
         nullable=False,
         index=True,
         default=generate_pinecone_namespace,
+    )
+    pinecone_migrated: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()

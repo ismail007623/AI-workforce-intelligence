@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from backend.app.core.database import Base
@@ -6,9 +6,14 @@ from backend.app.core.database import Base
 
 class Department(Base):
     __tablename__ = "departments"
+    __table_args__ = (
+        UniqueConstraint("org_id", "name", name="uq_department_org_name"),
+    )
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(100), unique=True, nullable=False)
+    # Name is unique per organization, not globally: two companies
+    # may both have a department called "Engineering".
+    name = Column(String(100), nullable=False)
     org_id = Column(Integer, ForeignKey("organizations.id"), nullable=True, index=True)
     employees = relationship("Employee", back_populates="department")
     organization = relationship("Organization", back_populates="departments")

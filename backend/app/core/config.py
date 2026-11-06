@@ -30,6 +30,10 @@ class Settings(BaseSettings):
     # Pinecone — set PINECONE_API_KEY in .env
     pinecone_api_key: str = ""
     pinecone_index_name: str = "company-policy"
+    # DEPRECATED: the old shared namespace. Kept only so the
+    # one-time migration knows which namespace to copy from.
+    # Uploads, queries and counts use the per-org namespace
+    # stored on the Organization row instead.
     pinecone_namespace: str = "company-policy"
     policy_max_upload_bytes: int = 10_485_760
     policy_storage_dir: str = "storage/policies"

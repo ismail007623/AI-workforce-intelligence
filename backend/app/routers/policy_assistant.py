@@ -8,6 +8,7 @@ from backend.app.core.auth_deps import require_self_or_hr, resolve_current_user
 from backend.app.core.database import get_db
 from backend.app.core.logger import get_logger
 from backend.app.models.user import UserRole
+from backend.app.services import pinecone_service
 from backend.app.services.policy_assistant_service import get_last_n_messages, save_message
 
 logger = get_logger(__name__)
@@ -48,6 +49,12 @@ async def policy_chat(
         await save_message(conversation_id, employee_id, "user", user_query, session)
         await session.commit()
 
+        # Resolve the org namespace from the token user (DB-loaded),
+        # never from the request: the graph only searches this org.
+        namespace = await pinecone_service.namespace_for_org(
+            session, current_user.org_id
+        )
+
         initial_state: AgentState = {
             "employee_id": employee_id,
             "conversation_id": conversation_id,
@@ -57,6 +64,8 @@ async def policy_chat(
             "retrieved_chunks": None,
             "no_policy_doc_found": False,
             "response": None,
+            "pinecone_namespace": namespace,
+            "org_id": current_user.org_id,
         }
 
         final_state = await policy_graph.ainvoke(initial_state)

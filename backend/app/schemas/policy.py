@@ -39,3 +39,12 @@ class PolicyHistoryItem(BaseModel):
     status: str
     page_count: int
     file_size_bytes: int
+
+
+class PolicyMigrationResponse(BaseModel):
+    """Result of the one-time legacy-namespace migration."""
+
+    org_id: int
+    namespace: str
+    copied_count: int
+    deleted_global: bool

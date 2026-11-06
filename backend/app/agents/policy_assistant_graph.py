@@ -6,8 +6,8 @@ from langgraph.graph import END, StateGraph
 from pydantic import BaseModel, Field
 from backend.app.core.config import get_settings
 from backend.app.core.logger import get_logger
+from backend.app.services import pinecone_service
 from backend.app.services.embedding_service import embed_texts
-from backend.app.services.pinecone_service import _get_index
 
 logger = get_logger(__name__)
 
@@ -35,6 +35,10 @@ class AgentState(TypedDict, total=False):
     retrieved_chunks: list[dict] | None
     no_policy_doc_found: bool
     response: str | None
+    # Tenant scoping, threaded from the router (token user only,
+    # never from the client): the org's Pinecone namespace and id.
+    pinecone_namespace: str
+    org_id: int
 
 
 # ---------------------------------------------------------------------------
@@ -114,8 +118,19 @@ async def generate_greeting_response(state: AgentState) -> AgentState:
 
 
 async def retrieve_policy_context(state: AgentState) -> AgentState:
+    """Retrieve policy chunks from the caller's org namespace.
+
+    The query runs only in the org namespace from the token
+    user, filtered on ``org_id`` metadata. An empty namespace
+    (no policy uploaded yet) returns no chunks and never falls
+    back to another namespace.
+    """
     logger.info("retrieve_policy_context: conversation %s", state.get("conversation_id"))
-    settings = get_settings()
+    namespace = state.get("pinecone_namespace")
+    org_id = state.get("org_id")
+    if not namespace or org_id is None:
+        logger.info("retrieve_policy_context: no org namespace in state — no policy")
+        return {**state, "retrieved_chunks": [], "no_policy_doc_found": True}
 
     loop = asyncio.get_event_loop()
 
@@ -124,30 +139,13 @@ async def retrieve_policy_context(state: AgentState) -> AgentState:
         None, lambda: embed_texts([state["user_message"]])[0]
     )
 
-    # Query Pinecone (sync call → thread pool)
-    def _pinecone_query():
-        index = _get_index()
-        return index.query(
-            vector=query_vector,
-            top_k=TOP_K,
-            namespace=settings.pinecone_namespace,
-            include_metadata=True,
-        )
-
-    results = await loop.run_in_executor(None, _pinecone_query)
-
-    matches = results.matches or []
-    chunks = []
-    for match in matches:
-        score = match.score if hasattr(match, "score") else 0.0
-        meta = match.metadata or {}
-        chunks.append({
-            "text": meta.get("text", ""),
-            "chunk_index": meta.get("chunk_index"),
-            "source_filename": meta.get("source_filename", ""),
-            "uploaded_at": meta.get("uploaded_at", ""),
-            "score": round(score, 4),
-        })
+    # Query Pinecone (sync call → thread pool), org namespace only.
+    chunks = await loop.run_in_executor(
+        None,
+        lambda: pinecone_service.query_namespace(
+            query_vector, namespace, org_id, top_k=TOP_K
+        ),
+    )
 
     no_doc = len(chunks) == 0
     logger.info("retrieve_policy_context: found %d chunks (no_doc=%s)", len(chunks), no_doc)
