@@ -201,6 +201,15 @@ export default function SignupPage() {
               Sign in
             </Link>
           </p>
+          <p className="mt-2 text-center text-sm text-[var(--color-text-muted)]">
+            Registering a company?{" "}
+            <Link
+              href="/company-signup"
+              className="font-semibold text-[var(--color-primary)] hover:underline"
+            >
+              Register your company
+            </Link>
+          </p>
           <p className="mt-4 flex items-start gap-1.5 text-xs leading-relaxed text-[var(--color-text-muted)]">
             <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             Employee accounts only. HR and Admin accounts are created by

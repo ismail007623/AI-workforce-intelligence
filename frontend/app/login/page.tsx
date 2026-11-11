@@ -121,10 +121,21 @@ export default function LoginPage() {
               Create an account
             </Link>
           </p>
+          <p className="mt-2 text-center text-sm text-[var(--color-text-muted)]">
+            Registering a company?{" "}
+            <Link
+              href="/company-signup"
+              className="font-semibold text-[var(--color-primary)] hover:underline"
+            >
+              Register your company
+            </Link>
+          </p>
           <p className="mt-4 flex items-start gap-1.5 text-xs leading-relaxed text-[var(--color-text-muted)]">
             <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            HR signup is open in this POC. Restrict HR account creation
-            before giving access to real clients.
+            One login for everyone. After you sign in, you go to your own
+            portal — employees see only their own records, HR sees the whole
+            company. HR accounts are created by invitation only, so nobody
+            can sign up as HR.
           </p>
         </div>
         <p className="mt-4 text-center text-xs text-[var(--color-text-muted)]">

@@ -1,16 +1,22 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
+  ArrowRight,
   Bell,
   Brain,
   Clock,
   LayoutDashboard,
   LogIn,
+  LogOut,
   Mail,
+  ShieldCheck,
   Sparkles,
   TrendingUp,
 } from "lucide-react";
 import { Logo } from "@/components/layout/Logo";
-import { RoleEntry } from "@/components/landing/RoleEntry";
+import { useSession } from "@/lib/session";
 
 const FEATURES = [
   {
@@ -62,6 +68,16 @@ const STATS = [
 ];
 
 export default function LandingPage() {
+  const router = useRouter();
+  const { user, hydrated, logout } = useSession();
+  const dashboardHref =
+    user?.role === "hr" || user?.role === "admin" ? "/hr" : "/employee";
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/");
+  };
+
   return (
     <div className="min-h-screen bg-[var(--color-bg-page)]">
       {/* Nav */}
@@ -81,12 +97,42 @@ export default function LandingPage() {
             >
               How it works
             </a>
-            <Link
-              href="#get-started"
-              className="rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[var(--color-primary-dark)]"
-            >
-              Get started
-            </Link>
+            {hydrated && user ? (
+              <>
+                <span className="hidden max-w-40 truncate px-2 text-sm font-semibold text-[var(--color-text-primary)] sm:block">
+                  {user.name}
+                </span>
+                <Link
+                  href={dashboardHref}
+                  className="rounded-[var(--radius-md)] px-3 py-2 text-sm font-semibold text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text-primary)]"
+                >
+                  Dashboard
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="flex items-center gap-1.5 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[var(--color-primary-dark)]"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Log out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="rounded-[var(--radius-md)] px-3 py-2 text-sm font-semibold text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text-primary)]"
+                >
+                  Log in
+                </Link>
+                <Link
+                  href="/company-signup"
+                  className="rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[var(--color-primary-dark)]"
+                >
+                  Get started
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -111,10 +157,26 @@ export default function LandingPage() {
             </p>
           </div>
 
-          {/* Role selection */}
-          <div className="mx-auto mt-12 max-w-2xl">
-            <RoleEntry />
+          {/* Sign-in actions — one login page for everyone */}
+          <div className="mx-auto mt-10 flex max-w-2xl flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            <Link
+              href="/company-signup"
+              className="inline-flex h-12 items-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-6 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[var(--color-primary-dark)]"
+            >
+              Get started
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              href="/login"
+              className="inline-flex h-12 items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border-strong)] bg-white px-6 text-sm font-semibold text-[var(--color-text-primary)] shadow-sm transition-colors hover:border-[var(--color-primary-light)] hover:text-[var(--color-primary)]"
+            >
+              Sign in
+            </Link>
           </div>
+          <p className="mt-5 flex items-center justify-center gap-1.5 text-xs text-[var(--color-text-muted)]">
+            <ShieldCheck className="h-3.5 w-3.5" />
+            Employees can only access their own records. HR has organization-wide visibility.
+          </p>
 
           {/* Stats */}
           <div className="mx-auto mt-16 grid max-w-4xl grid-cols-2 gap-4 sm:grid-cols-4">
@@ -194,10 +256,11 @@ export default function LandingPage() {
             <Bell className="mx-auto h-10 w-10 text-white/90" />
             <h2 className="mt-4 text-3xl font-bold text-white">Ready to see it in action?</h2>
             <p className="mx-auto mt-2 max-w-xl text-white/80">
-              Sign in to explore the employee portal or the HR command center.
+              Register your company to explore the HR command center, or sign in to open your
+              employee portal.
             </p>
             <Link
-              href="#get-started"
+              href="/company-signup"
               className="mt-6 inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-white px-6 py-3 text-sm font-semibold text-[var(--color-primary)] shadow-lg transition-transform hover:scale-105"
             >
               Get started <Sparkles className="h-4 w-4" />
