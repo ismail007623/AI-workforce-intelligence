@@ -23,6 +23,19 @@ both steps.
 
 Downgrade restores the global unique constraint on ``name``
 and drops the migration flag column.
+
+Fixed: 2026-11-07 - idempotent against ``Base.metadata.create_all``.
+The Department model already carries the composite
+``UniqueConstraint("org_id", "name", name="uq_department_org_name")``
+and the Organization model already carries ``pinecone_migrated``, so
+``create_all`` at app startup builds both. The old version called
+``op.add_column("organizations", pinecone_migrated)`` and
+``op.create_unique_constraint("uq_department_org_name", ...)``
+unguarded, which fails with ``column already exists`` /
+``duplicate object`` on any database where the backend had already
+started with the Phase 3 code. Each step below is now guarded by
+inspection, so it is a no-op for anything ``create_all`` already
+built, and still builds it on a fresh database.
 """
 
 from typing import Sequence, Union
@@ -116,11 +129,30 @@ def _swap_departments_table(bind, *, unique_name: bool) -> None:
         )
 
 
+def _has_column(bind, table: str, column: str) -> bool:
+    if not sa.inspect(bind).has_table(table):
+        return False
+    return any(c["name"] == column for c in sa.inspect(bind).get_columns(table))
+
+
+def _has_composite_unique(bind) -> bool:
+    """True when departments already has the (org_id, name) unique."""
+    inspector = sa.inspect(bind)
+    if not inspector.has_table("departments"):
+        return False
+    for constraint in inspector.get_unique_constraints("departments"):
+        if constraint.get("column_names") == ["org_id", "name"]:
+            return True
+    return False
+
+
 def upgrade() -> None:
     """Add the migration flag and make department names org-scoped."""
     bind = op.get_bind()
 
-    if sa.inspect(bind).has_table("organizations"):
+    if _has_column(bind, "organizations", "pinecone_migrated"):
+        pass
+    elif sa.inspect(bind).has_table("organizations"):
         op.add_column(
             "organizations",
             sa.Column(
@@ -138,15 +170,20 @@ def upgrade() -> None:
         # Batch mode cannot drop the old unnamed UNIQUE on
         # name (it would keep global uniqueness alongside the
         # composite one), so the table is rebuilt with DDL.
+        # Skip the rebuild when create_all already built the
+        # composite uniqueness.
+        if _has_composite_unique(bind):
+            return
         _swap_departments_table(bind, unique_name=False)
         return
 
     old_name = _old_name_unique_constraint(bind)
     if old_name:
         op.drop_constraint(old_name, "departments", type_="unique")
-    op.create_unique_constraint(
-        "uq_department_org_name", "departments", ["org_id", "name"]
-    )
+    if not _has_composite_unique(bind):
+        op.create_unique_constraint(
+            "uq_department_org_name", "departments", ["org_id", "name"]
+        )
 
 
 def downgrade() -> None:
@@ -177,12 +214,14 @@ def downgrade() -> None:
             # fails if two orgs already share a department name.
             _swap_departments_table(bind, unique_name=True)
         else:
-            op.drop_constraint(
-                "uq_department_org_name", "departments", type_="unique"
-            )
-            op.create_unique_constraint(
-                "departments_name_key", "departments", ["name"]
-            )
+            if _has_composite_unique(bind):
+                op.drop_constraint(
+                    "uq_department_org_name", "departments", type_="unique"
+                )
+            if not _old_name_unique_constraint(bind):
+                op.create_unique_constraint(
+                    "departments_name_key", "departments", ["name"]
+                )
 
-    if sa.inspect(bind).has_table("organizations"):
+    if _has_column(bind, "organizations", "pinecone_migrated"):
         op.drop_column("organizations", "pinecone_migrated")
