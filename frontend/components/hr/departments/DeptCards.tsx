@@ -22,13 +22,13 @@ function computedRiskLabel(rate: number): string {
 const DEPT_THEMES = [
   { Icon: Code2, bg: "bg-violet-100", text: "text-violet-600", bar: "bg-violet-500" },
   { Icon: Briefcase, bg: "bg-blue-100", text: "text-blue-600", bar: "bg-blue-500" },
-  { Icon: Users, bg: "bg-emerald-100", text: "text-emerald-600", bar: "bg-emerald-500" },
-  { Icon: DollarSign, bg: "bg-amber-100", text: "text-amber-600", bar: "bg-amber-500" },
+  { Icon: Users, bg: "bg-[var(--color-success-light)]", text: "text-[var(--color-success)]", bar: "bg-[var(--color-success-light)]0" },
+  { Icon: DollarSign, bg: "bg-[var(--color-warning-light)]", text: "text-[var(--color-warning)]", bar: "bg-[var(--color-warning-light)]0" },
   { Icon: Megaphone, bg: "bg-pink-100", text: "text-pink-600", bar: "bg-pink-500" },
-  { Icon: ShoppingCart, bg: "bg-sky-100", text: "text-sky-600", bar: "bg-sky-500" },
-  { Icon: Settings, bg: "bg-slate-100", text: "text-slate-600", bar: "bg-slate-500" },
+  { Icon: ShoppingCart, bg: "bg-sky-100", text: "text-[var(--color-info)]", bar: "bg-[var(--color-info-light)]0" },
+  { Icon: Settings, bg: "bg-[var(--color-bg-soft)]", text: "text-[var(--color-text-secondary)]", bar: "bg-[var(--color-bg-soft)]0" },
   { Icon: HeartPulse, bg: "bg-rose-100", text: "text-rose-600", bar: "bg-rose-500" },
-  { Icon: BarChart2, bg: "bg-indigo-100", text: "text-indigo-600", bar: "bg-indigo-500" },
+  { Icon: BarChart2, bg: "bg-[var(--color-primary-xlight)]", text: "text-[var(--color-primary)]", bar: "bg-[var(--color-primary-xlight)]0" },
 ];
 
 function deptTheme(name: string) {
@@ -73,18 +73,18 @@ function DeptCard({
   const theme = deptTheme(d.department);
   const { Icon } = theme;
   const rateColor =
-    rate >= 85 ? "#22c55e" : rate >= 60 ? "#f59e0b" : "#ef4444";
+    rate >= 85 ? "#22c55e" : rate >= 60 ? "#d58b25" : "#dc5263";
   const rateLabel =
     rate >= 85 ? "Excellent" : rate >= 60 ? "Moderate" : "At Risk";
   const rateLabelClass =
     rate >= 85
       ? "text-[var(--color-success)]"
       : rate >= 60
-        ? "text-amber-500"
+        ? "text-[var(--color-warning)]"
         : "text-[var(--color-danger)]";
 
   return (
-    <div className="group flex flex-col rounded-[18px] border border-[var(--color-border)] bg-white p-4 shadow-[0_8px_24px_rgba(30,20,60,0.06)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(108,92,231,0.12)]">
+    <div className="group flex flex-col rounded-2xl border border-[var(--color-border)] bg-white p-4 shadow-[var(--shadow-card)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-card-hover)]">
       {/* Header row */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-3 min-w-0">
@@ -123,7 +123,7 @@ function DeptCard({
       </div>
 
       {/* Progress bar */}
-      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[var(--color-bg-soft)]">
         <div
           className="h-full rounded-full transition-all"
           style={{ width: `${rate}%`, backgroundColor: rateColor }}
@@ -139,8 +139,8 @@ function DeptCard({
           </span>
         </div>
         <div className="flex flex-1 flex-col items-center gap-0.5 rounded-xl bg-[var(--color-warning-light)] py-1.5">
-          <span className="text-[14px] font-bold text-amber-500">{d.late}</span>
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-amber-500 opacity-70">
+          <span className="text-[14px] font-bold text-[var(--color-warning)]">{d.late}</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-warning)] opacity-70">
             Late
           </span>
         </div>
@@ -187,7 +187,7 @@ export function DeptCards({
     return (
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-52 rounded-[18px]" />
+          <Skeleton key={i} className="h-52 rounded-2xl" />
         ))}
       </div>
     );

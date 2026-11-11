@@ -64,7 +64,7 @@ export function DeptDrawer({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 bg-slate-900/30 backdrop-blur-[2px]"
+        className="fixed inset-0 z-40 bg-[#17172b]/30 backdrop-blur-[2px]"
         onClick={onClose}
         aria-hidden
       />
@@ -92,7 +92,7 @@ export function DeptDrawer({
             type="button"
             onClick={onClose}
             aria-label="Close panel"
-            className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-sm)] text-[var(--color-text-muted)] transition-colors hover:bg-slate-100 hover:text-slate-700"
+            className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-sm)] text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-bg-soft)] hover:text-[var(--color-text-secondary)]"
           >
             <X className="h-4 w-4" />
           </button>
@@ -115,7 +115,7 @@ export function DeptDrawer({
           {/* Present / Late / Absent / Total pills */}
           <div className="grid grid-cols-2 gap-2">
             <StatPill label="Present" value={dept.present} bg="bg-[var(--color-success-light)]" text="text-[var(--color-success)]" />
-            <StatPill label="Late" value={dept.late} bg="bg-[var(--color-warning-light)]" text="text-amber-600" />
+            <StatPill label="Late" value={dept.late} bg="bg-[var(--color-warning-light)]" text="text-[var(--color-warning)]" />
             <StatPill label="Absent" value={dept.absent} bg="bg-[var(--color-danger-light)]" text="text-[var(--color-danger)]" />
             <StatPill label="Total" value={dept.total_employees} bg="bg-[var(--color-primary-xlight)]" text="text-[var(--color-primary)]" />
           </div>
@@ -138,7 +138,7 @@ export function DeptDrawer({
                 (dept.avg_reliability ?? 100) >= 80
                   ? "text-[var(--color-success)]"
                   : (dept.avg_reliability ?? 100) >= 60
-                    ? "text-amber-600"
+                    ? "text-[var(--color-warning)]"
                     : "text-[var(--color-danger)]"
               }
             />
@@ -160,7 +160,7 @@ export function DeptDrawer({
                 <MetricRow
                   label="Weak Reasons"
                   value={dept.weak_reasons ?? 0}
-                  valueClass="text-amber-600"
+                  valueClass="text-[var(--color-warning)]"
                 />
                 <MetricRow
                   label="Invalid Reasons"

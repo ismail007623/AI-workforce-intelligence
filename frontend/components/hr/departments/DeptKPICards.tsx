@@ -52,7 +52,7 @@ function KpiCard({
 }) {
   if (loading) {
     return (
-      <div className="rounded-2xl border border-[var(--color-border)] bg-white p-5 shadow-[0_4px_16px_rgba(30,20,60,0.05)]">
+      <div className="rounded-2xl border border-[var(--color-border)] bg-white p-5 shadow-[var(--shadow-card)]">
         <div className="flex items-start justify-between">
           <Skeleton className="h-3 w-28 rounded" />
           <Skeleton className="h-9 w-9 rounded-xl" />
@@ -64,7 +64,7 @@ function KpiCard({
   }
 
   return (
-    <div className="flex flex-col justify-between rounded-2xl border border-[var(--color-border)] bg-white p-5 shadow-[0_4px_16px_rgba(30,20,60,0.05)] transition-shadow hover:shadow-[0_8px_24px_rgba(30,20,60,0.09)]">
+    <div className="flex flex-col justify-between rounded-2xl border border-[var(--color-border)] bg-white p-5 shadow-[var(--shadow-card)] transition-shadow hover:shadow-[var(--shadow-card-hover)]">
       <div className="flex items-start justify-between gap-3">
         <p className="text-[12px] font-semibold text-[var(--color-text-muted)]">{label}</p>
         <div
@@ -124,7 +124,7 @@ export function DeptKPICards({
         icon={Building2}
         iconBg="bg-[var(--color-primary-xlight)]"
         iconColor="text-[var(--color-primary)]"
-        sparkColor="#6c5ce7"
+        sparkColor="#6554e8"
         sparkValue={totalDepts * 14}
         loading={loading}
       />
@@ -146,7 +146,7 @@ export function DeptKPICards({
         icon={AlertTriangle}
         iconBg="bg-[var(--color-danger-light)]"
         iconColor="text-[var(--color-danger)]"
-        sparkColor="#ef4444"
+        sparkColor="#dc5263"
         sparkValue={highRiskDept ? 25 : 85}
         loading={loading}
       />
@@ -156,8 +156,8 @@ export function DeptKPICards({
         sub={`Across ${totalDepts} department${totalDepts !== 1 ? "s" : ""}`}
         icon={Clock}
         iconBg="bg-[var(--color-warning-light)]"
-        iconColor="text-amber-500"
-        sparkColor="#f59e0b"
+        iconColor="text-[var(--color-warning)]"
+        sparkColor="#d58b25"
         sparkValue={totalLate}
         loading={loading}
       />

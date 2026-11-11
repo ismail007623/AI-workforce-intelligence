@@ -23,12 +23,12 @@ export function LoadingTable({ rows = 5 }: { rows?: number }) {
 
 export function ErrorState({ message }: { message?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-red-100 bg-red-50/50 px-6 py-12 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100 text-red-600">
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-[var(--color-border)] bg-[var(--color-danger-light)] px-6 py-12 text-center">
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-danger-light)] text-[var(--color-danger)]">
         <AlertTriangle className="h-6 w-6" />
       </div>
-      <p className="mt-3 text-sm font-semibold text-slate-900">Something went wrong</p>
-      <p className="mt-1 text-sm text-slate-500">
+      <p className="mt-3 text-sm font-semibold text-[var(--color-text-primary)]">Something went wrong</p>
+      <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
         {message ?? "Failed to load data. Please check the API connection and try again."}
       </p>
     </div>
@@ -45,12 +45,12 @@ export function EmptyState({
   description?: string;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 px-6 py-12 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--color-border-strong)] px-6 py-12 text-center">
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-bg-soft)] text-[var(--color-text-muted)]">
         <Icon className="h-6 w-6" />
       </div>
-      <p className="mt-3 text-sm font-semibold text-slate-900">{title}</p>
-      {description && <p className="mt-1 text-sm text-slate-500">{description}</p>}
+      <p className="mt-3 text-sm font-semibold text-[var(--color-text-primary)]">{title}</p>
+      {description && <p className="mt-1 text-sm text-[var(--color-text-secondary)]">{description}</p>}
     </div>
   );
 }

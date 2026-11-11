@@ -15,7 +15,7 @@ export function AiInsightCard({ summary }: { summary?: EmployeeSummary }) {
       ? `You have ${lateCount} late arrival${lateCount !== 1 ? "s" : ""} this month — consider leaving 15 minutes earlier.`
       : "You have maintained punctual check-ins this month. Keep it up!",
     rate >= 90
-      ? `Your ${rate}% attendance rate is above the team average.`
+      ? `Your ${rate}% attendance rate is strong.`
       : `Your attendance rate is ${rate}%. Aim for 90%+ for optimal performance.`,
     risk === "low"
       ? "Your risk level is low — no immediate HR follow-up expected."

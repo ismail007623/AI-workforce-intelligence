@@ -39,10 +39,10 @@ const STATUS_UI: Record<
   DayStatus,
   { label: string; color: string; bg: string; icon?: "check" | "clock" | "dash" }
 > = {
-  present: { label: "Present", color: "#00b894", bg: "#e0f8f3", icon: "check" },
-  late: { label: "Late", color: "#fdcb6e", bg: "#fff4e5", icon: "clock" },
-  pending: { label: "Pending", color: "#8e8ea0", bg: "#f4f3fb", icon: "clock" },
-  off: { label: "Off", color: "#8e8ea0", bg: "transparent", icon: "dash" },
+  present: { label: "Present", color: "var(--color-success)", bg: "var(--color-success-light)", icon: "check" },
+  late: { label: "Late", color: "var(--color-warning)", bg: "var(--color-warning-light)", icon: "clock" },
+  pending: { label: "Pending", color: "var(--color-text-muted)", bg: "var(--color-bg-soft)", icon: "clock" },
+  off: { label: "Off", color: "var(--color-text-muted)", bg: "transparent", icon: "dash" },
 };
 
 export function WeeklyAttendanceCard({ records }: { records: AttendanceRecord[] }) {
@@ -117,17 +117,16 @@ export function WeeklyAttendanceCard({ records }: { records: AttendanceRecord[] 
         <p className="text-[13px] font-semibold text-[var(--color-text-primary)]">
           This Week Summary
         </p>
-        <div
-          className="mt-3 h-2 overflow-hidden rounded-full"
-          style={{
-            backgroundImage: `linear-gradient(to right, #00b894 0% ${presentPct}%, #fdcb6e ${presentPct}% ${presentPct + latePct}%, #6c5ce7 ${presentPct + latePct}% 100%)`,
-          }}
-        />
+        <div className="mt-3 flex h-2 overflow-hidden rounded-full bg-[var(--color-border)]">
+          {presentPct > 0 && <div style={{ width: `${presentPct}%`, background: "var(--color-success)" }} />}
+          {latePct > 0 && <div style={{ width: `${latePct}%`, background: "var(--color-warning)" }} />}
+          {pendingPct > 0 && <div style={{ width: `${pendingPct}%`, background: "var(--color-primary)" }} />}
+        </div>
         <div className="mt-2.5 flex flex-wrap gap-4">
           {[
-            { label: "Present", color: "#00b894" },
-            { label: "Late", color: "#fdcb6e" },
-            { label: "Pending", color: "#6c5ce7" },
+            { label: "Present", color: "var(--color-success)" },
+            { label: "Late", color: "var(--color-warning)" },
+            { label: "Pending", color: "var(--color-primary)" },
           ].map((l) => (
             <span key={l.label} className="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)]">
               <span className="h-2 w-2 rounded-full" style={{ background: l.color }} />

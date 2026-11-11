@@ -61,7 +61,7 @@ export default function EmployeeHistoryPage() {
               <TBody>
                 {data.map((r) => (
                   <TR key={r.date}>
-                    <TD className="font-semibold text-slate-900">{formatDate(r.date)}</TD>
+                    <TD className="font-semibold text-[var(--color-text-primary)]">{formatDate(r.date)}</TD>
                     <TD>{formatTime(r.check_in_time)}</TD>
                     <TD>{formatTime(r.check_out_time)}</TD>
                     <TD>
@@ -74,18 +74,18 @@ export default function EmployeeHistoryPage() {
                     </TD>
                     <TD>
                       {r.late_minutes > 0 ? (
-                        <span className="font-semibold text-amber-600">+{r.late_minutes}m</span>
+                        <span className="font-semibold text-[var(--color-warning)]">+{r.late_minutes}m</span>
                       ) : (
-                        <span className="text-slate-300">—</span>
+                        <span className="text-[var(--color-text-muted)]">—</span>
                       )}
                     </TD>
                     <TD>
                       {r.early_leave_minutes > 0 ? (
-                        <span className="font-semibold text-orange-600">
+                        <span className="font-semibold text-[var(--color-warning)]">
                           {r.early_leave_minutes}m
                         </span>
                       ) : (
-                        <span className="text-slate-300">—</span>
+                        <span className="text-[var(--color-text-muted)]">—</span>
                       )}
                     </TD>
                   </TR>

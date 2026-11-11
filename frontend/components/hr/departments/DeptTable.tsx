@@ -42,7 +42,7 @@ function AttendanceBadge({ rate }: { rate: number }) {
     );
   if (rate >= 75)
     return (
-      <span className="inline-flex items-center rounded-full bg-[var(--color-warning-light)] px-2.5 py-0.5 text-[11px] font-bold text-[#d4a017]">
+      <span className="inline-flex items-center rounded-full bg-[var(--color-warning-light)] px-2.5 py-0.5 text-[11px] font-bold text-[#d58b25]">
         {rate}%
       </span>
     );
@@ -160,7 +160,7 @@ export function DeptTable({
                   return (
                     <tr
                       key={d.department}
-                      className={`border-b border-[var(--color-border)] transition-colors hover:bg-[var(--color-primary-xlight)]/30 ${idx % 2 === 0 ? "" : "bg-slate-50/40"}`}
+                      className={`border-b border-[var(--color-border)] transition-colors hover:bg-[var(--color-primary-xlight)]/30 ${idx % 2 === 0 ? "" : "bg-[var(--color-bg-soft)]/40"}`}
                     >
                       {/* Department */}
                       <td className="px-5 py-4">
@@ -185,7 +185,7 @@ export function DeptTable({
                       </td>
                       {/* Late */}
                       <td className="px-4 py-4 text-center">
-                        <span className="font-semibold text-amber-500">{d.late}</span>
+                        <span className="font-semibold text-[var(--color-warning)]">{d.late}</span>
                       </td>
                       {/* Absent */}
                       <td className="px-4 py-4 text-center">
@@ -213,7 +213,7 @@ export function DeptTable({
                               d.avg_reliability >= 80
                                 ? "text-[var(--color-success)]"
                                 : d.avg_reliability >= 60
-                                  ? "text-amber-500"
+                                  ? "text-[var(--color-warning)]"
                                   : "text-[var(--color-danger)]"
                             }`}
                           >

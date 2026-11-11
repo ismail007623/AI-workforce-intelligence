@@ -24,7 +24,7 @@ export function LateIntelligenceTable({
     <div className="overflow-x-auto">
       <Table>
         <THead>
-          <TR className="bg-slate-50/80">
+          <TR className="bg-[var(--color-bg-soft)]/80">
             <TH>Employee</TH>
             {show("department") && <TH>Department</TH>}
             {show("check_in") && <TH>Check In</TH>}
@@ -104,7 +104,7 @@ export function LateIntelligenceTable({
                       >
                         {r.reason}
                         {r.pattern_detected && (
-                          <span className="ml-1 text-[10px] font-semibold text-amber-600">⚠</span>
+                          <span className="ml-1 text-[10px] font-semibold text-[var(--color-warning)]">⚠</span>
                         )}
                       </span>
                     ) : (
@@ -136,7 +136,7 @@ export function LateIntelligenceTable({
                 <TD>
                   <button
                     type="button"
-                    className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] text-[var(--color-text-muted)] hover:bg-slate-100"
+                    className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] text-[var(--color-text-muted)] hover:bg-[var(--color-bg-soft)]"
                     aria-label="Row actions"
                   >
                     <MoreVertical className="h-4 w-4" />
@@ -153,7 +153,7 @@ export function LateIntelligenceTable({
 
 function InfoDot() {
   return (
-    <span className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full bg-slate-200 text-[9px] font-bold text-slate-500">
+    <span className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[var(--color-border)] text-[9px] font-bold text-[var(--color-text-secondary)]">
       i
     </span>
   );
@@ -169,13 +169,13 @@ function DecisionBadge({
   if (!decision) {
     if (reasonStatus === "pending_ai_evaluation") {
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700 ring-1 ring-amber-200 ring-inset">
+        <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-warning-light)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--color-warning)] ring-1 ring-[var(--color-warning)]/30 ring-inset">
           Pending AI
         </span>
       );
     }
     return (
-      <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-500">
+      <span className="inline-flex rounded-full bg-[var(--color-bg-soft)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--color-text-secondary)]">
         Pending
       </span>
     );
@@ -186,7 +186,7 @@ function DecisionBadge({
 
   if (positive) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200 ring-inset">
+      <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-success-light)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--color-success)] ring-1 ring-[var(--color-success)]/30 ring-inset">
         <CheckCircle2 className="h-3 w-3" />
         {decision}
       </span>
@@ -195,7 +195,7 @@ function DecisionBadge({
 
   if (variant === "weak" || variant === "invalid") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-orange-50 px-2.5 py-0.5 text-[11px] font-semibold text-orange-700 ring-1 ring-orange-200 ring-inset">
+      <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-warning-light)] px-2.5 py-0.5 text-[11px] font-semibold text-orange-700 ring-1 ring-orange-200 ring-inset">
         <AlertTriangle className="h-3 w-3" />
         {decision}
       </span>
@@ -203,7 +203,7 @@ function DecisionBadge({
   }
 
   return (
-    <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600">
+    <span className="inline-flex rounded-full bg-[var(--color-bg-soft)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--color-text-secondary)]">
       {decision}
     </span>
   );

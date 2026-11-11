@@ -25,11 +25,11 @@ const variants: Record<Variant, string> = {
   present: "bg-[var(--color-success-light)] text-[var(--color-success)] ring-[var(--color-success)]/20",
   on_time: "bg-[var(--color-success-light)] text-[var(--color-success)] ring-[var(--color-success)]/20",
   low: "bg-[var(--color-success-light)] text-[var(--color-success)] ring-[var(--color-success)]/20",
-  late: "bg-[var(--color-warning-light)] text-[#d4a017] ring-[var(--color-warning)]/30",
-  medium: "bg-[var(--color-warning-light)] text-[#d4a017] ring-[var(--color-warning)]/30",
+  late: "bg-[var(--color-warning-light)] text-[var(--color-warning)] ring-[var(--color-warning)]/30",
+  medium: "bg-[var(--color-warning-light)] text-[var(--color-warning)] ring-[var(--color-warning)]/30",
   absent: "bg-[var(--color-danger-light)] text-[var(--color-danger)] ring-[var(--color-danger)]/20",
   high: "bg-[var(--color-danger-light)] text-[var(--color-danger)] ring-[var(--color-danger)]/20",
-  early_left: "bg-[var(--color-warning-light)] text-[var(--color-danger)] ring-[var(--color-danger)]/20",
+  early_left: "bg-[var(--color-warning-light)] text-[var(--color-warning)] ring-[var(--color-warning)]/30",
   not_checked_in: "bg-[var(--color-primary-xlight)] text-[var(--color-text-muted)] ring-[var(--color-border)]",
   neutral: "bg-[var(--color-primary-xlight)] text-[var(--color-text-muted)] ring-[var(--color-border)]",
   primary: "bg-[var(--color-primary-xlight)] text-[var(--color-primary)] ring-[var(--color-primary)]/20",
@@ -39,7 +39,7 @@ const variants: Record<Variant, string> = {
   failed: "bg-[var(--color-danger-light)] text-[var(--color-danger)] ring-[var(--color-danger)]/20",
   valid: "bg-[var(--color-success-light)] text-[var(--color-success)] ring-[var(--color-success)]/20",
   acceptable: "bg-[var(--color-primary-xlight)] text-[var(--color-primary)] ring-[var(--color-primary)]/20",
-  weak: "bg-[var(--color-warning-light)] text-[#d4a017] ring-[var(--color-warning)]/30",
+  weak: "bg-[var(--color-warning-light)] text-[var(--color-warning)] ring-[var(--color-warning)]/30",
   invalid: "bg-[var(--color-danger-light)] text-[var(--color-danger)] ring-[var(--color-danger)]/20",
 };
 

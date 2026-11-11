@@ -50,7 +50,7 @@ export function TablePagination({
           {windowPages[0] > 1 && (
             <>
               <PageBtn n={1} active={page === 1} onClick={() => onPageChange(1)} />
-              {windowPages[0] > 2 && <span className="px-1 text-slate-400">…</span>}
+              {windowPages[0] > 2 && <span className="px-1 text-[var(--color-text-muted)]">…</span>}
             </>
           )}
           {windowPages.map((n) => (
@@ -59,7 +59,7 @@ export function TablePagination({
           {windowPages[windowPages.length - 1] < pages && (
             <>
               {windowPages[windowPages.length - 1] < pages - 1 && (
-                <span className="px-1 text-slate-400">…</span>
+                <span className="px-1 text-[var(--color-text-muted)]">…</span>
               )}
               <PageBtn n={pages} active={page === pages} onClick={() => onPageChange(pages)} />
             </>
@@ -86,7 +86,7 @@ function PageBtn({ n, active, onClick }: { n: number; active: boolean; onClick: 
       className={`flex h-8 min-w-8 items-center justify-center rounded-[var(--radius-sm)] px-2 text-[12px] font-semibold ${
         active
           ? "bg-[var(--color-primary)] text-white"
-          : "border border-[var(--color-border)] bg-white text-[var(--color-text-secondary)] hover:bg-slate-50"
+          : "border border-[var(--color-border)] bg-white text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-soft)]"
       }`}
     >
       {n}

@@ -29,13 +29,13 @@ function formatLiveClock(date: Date) {
 
 function StatusBanner({ title, subtitle }: { title: string; subtitle: string }) {
   return (
-    <div className="relative mt-3 flex items-center gap-2 rounded-[var(--radius-md)] bg-white/10 px-3 py-2 animate-fade-in">
-      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#00e676]/20">
-        <FiCheck size={14} className="text-[#00e676]" />
+    <div className="mt-3 flex items-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-success-light)] px-3 py-2.5 animate-fade-in">
+      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--color-success)]">
+        <FiCheck size={14} className="text-white" />
       </div>
       <div className="min-w-0 leading-tight">
-        <p className="text-[13px] font-semibold text-white">{title}</p>
-        <p className="text-[11px] text-white/70">{subtitle}</p>
+        <p className="text-[13px] font-semibold text-[var(--color-text-primary)]">{title}</p>
+        <p className="text-[11px] text-[var(--color-text-secondary)]">{subtitle}</p>
       </div>
     </div>
   );
@@ -55,14 +55,14 @@ function WorkingHoursProgress({
   return (
     <div className="relative mt-3 animate-fade-in">
       <div className="mb-1.5 flex flex-wrap items-center justify-between gap-1.5">
-        <span className="text-[11px] font-medium text-white/80">Working hours progress</span>
+        <span className="text-[11px] font-medium text-[var(--color-text-secondary)]">Working hours progress</span>
         {loading ? (
-          <span className="text-[10px] text-white/50">Recording check-in…</span>
+          <span className="text-[10px] text-[var(--color-text-muted)]">Recording check-in…</span>
         ) : progress ? (
           <div className="flex items-center gap-1.5 text-[11px] font-semibold">
-            <span className="text-[#4ade80]">{formatDuration(progress.workedMin)} worked</span>
-            <span className="text-white/40">·</span>
-            <span className="text-white/60">{formatDuration(progress.remainingMin)} remaining</span>
+            <span className="text-[var(--color-success)]">{formatDuration(progress.workedMin)} worked</span>
+            <span className="text-[var(--color-text-muted)]">·</span>
+            <span className="text-[var(--color-text-secondary)]">{formatDuration(progress.remainingMin)} remaining</span>
           </div>
         ) : null}
       </div>
@@ -80,7 +80,7 @@ function WorkingHoursProgress({
       </div>
 
       {!loading && checkInIso && (
-        <div className="mt-1 flex justify-between text-[10px] text-white/60">
+        <div className="mt-1 flex justify-between text-[10px] text-[var(--color-text-muted)]">
           <span>{formatTime(checkInIso)} Actual Check In</span>
           <span>{formatOfficeEndLabel()} Office End</span>
         </div>
@@ -179,82 +179,82 @@ export function HeroCheckInCard({
           refresh();
         }}
       />
-    <div className="hero-card hero-card-compact">
-      <div className="relative flex items-start justify-between gap-3">
-        <p className="text-[12px] font-medium leading-snug text-white/75">{formatFullDate()}</p>
-        <p className="shrink-0 text-[32px] font-extrabold leading-none tracking-tight text-white max-sm:text-[28px]">
-          {formatLiveClock(now)}
-        </p>
-      </div>
-
-      {isLate && lateMinutes > 0 && (isCheckedIn || isCheckedOut) && (
-        <span className="relative mt-1.5 inline-flex items-center gap-1 rounded-full border border-white/25 bg-white/15 px-2.5 py-0.5 text-[11px] font-semibold text-white">
-          <FiClock size={12} />
-          Late by {formatDuration(lateMinutes)}
-        </span>
-      )}
-
-      {isCheckedIn && !isCheckingIn && !reasonPending && (
-        <StatusBanner
-          title="Checked in successfully"
-          subtitle="You're all set. Have a productive day!"
-        />
-      )}
-
-      {isCheckedOut && (
-        <StatusBanner
-          title="Checked out successfully"
-          subtitle={`You checked out at ${formatTime(checkOutTime)}. See you tomorrow!`}
-        />
-      )}
-
-      {showProgress && (
-        <WorkingHoursProgress
-          checkInIso={checkInTime ?? undefined}
-          now={now}
-          loading={isCheckingIn}
-        />
-      )}
-
-      {showCheckInButton && (
-        <button
-          type="button"
-          onClick={handleCheckIn}
-          className="relative mt-4 flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-white py-2.5 text-[13px] font-bold text-[var(--color-primary)] transition-opacity hover:opacity-92 active:scale-[0.97]"
-        >
-          <MdLogin size={16} />
-          Check In
-        </button>
-      )}
-
-      {error && (
-        <div className="relative mt-3 flex items-start gap-2 rounded-[var(--radius-md)] bg-white/10 p-2.5 text-[13px] text-white animate-fade-in">
-          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          {error}
+      <div className="ds-card">
+        <div className="flex items-start justify-between gap-3">
+          <p className="text-[12px] font-medium leading-snug text-[var(--color-text-secondary)]">{formatFullDate()}</p>
+          <p className="shrink-0 text-[32px] font-bold leading-none tracking-tight text-[var(--color-text-primary)] max-sm:text-[28px]">
+            {formatLiveClock(now)}
+          </p>
         </div>
-      )}
 
-      <div className="relative mt-3 flex flex-col gap-2 border-t border-white/10 pt-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-[10px] leading-snug text-white/60">
-          Office hours: 10:00 AM – 7:00 PM · Grace period until 10:15 AM
-        </p>
-        {isCheckedIn && !reasonPending && (
+        {isLate && lateMinutes > 0 && (isCheckedIn || isCheckedOut) && (
+          <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-[var(--color-warning-light)] px-2.5 py-1 text-[11px] font-semibold text-[var(--color-warning)]">
+            <FiClock size={12} />
+            Late by {formatDuration(lateMinutes)}
+          </span>
+        )}
+
+        {isCheckedIn && !isCheckingIn && !reasonPending && (
+          <StatusBanner
+            title="Checked in successfully"
+            subtitle="You're all set. Have a productive day!"
+          />
+        )}
+
+        {isCheckedOut && (
+          <StatusBanner
+            title="Checked out successfully"
+            subtitle={`You checked out at ${formatTime(checkOutTime)}. See you tomorrow!`}
+          />
+        )}
+
+        {showProgress && (
+          <WorkingHoursProgress
+            checkInIso={checkInTime ?? undefined}
+            now={now}
+            loading={isCheckingIn}
+          />
+        )}
+
+        {showCheckInButton && (
           <button
             type="button"
-            onClick={handleCheckOut}
-            disabled={isCheckingOut}
-            className="flex shrink-0 items-center justify-center gap-1.5 self-end rounded-[var(--radius-md)] border-[1.5px] border-white/50 bg-transparent px-4 py-2 text-[13px] font-bold text-white transition-all hover:border-white hover:bg-white/10 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60 sm:self-auto"
+            onClick={handleCheckIn}
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-primary)] py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[var(--color-primary-dark)] active:scale-[0.99]"
           >
-            {isCheckingOut ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <MdLogout size={15} />
-            )}
-            Check Out
+            <MdLogin size={16} />
+            Check In
           </button>
         )}
+
+        {error && (
+          <div className="mt-3 flex items-start gap-2 rounded-[var(--radius-md)] bg-[var(--color-danger-light)] p-2.5 text-[13px] text-[var(--color-danger)] animate-fade-in" role="alert">
+            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            {error}
+          </div>
+        )}
+
+        <div className="mt-4 flex flex-col gap-2 border-t border-[var(--color-border)] pt-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-[11px] leading-snug text-[var(--color-text-muted)]">
+            Office hours: 10:00 AM – 7:00 PM · Grace period until 10:15 AM
+          </p>
+          {isCheckedIn && !reasonPending && (
+            <button
+              type="button"
+              onClick={handleCheckOut}
+              disabled={isCheckingOut}
+              className="flex shrink-0 items-center justify-center gap-1.5 self-end rounded-[var(--radius-md)] border border-[var(--color-border-strong)] bg-white px-4 py-2 text-[13px] font-semibold text-[var(--color-text-primary)] transition-colors duration-200 hover:border-[var(--color-primary-light)] hover:text-[var(--color-primary)] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 sm:self-auto"
+            >
+              {isCheckingOut ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <MdLogout size={15} />
+              )}
+              Check Out
+            </button>
+          )}
+        </div>
       </div>
-    </div>
     </>
   );
 }

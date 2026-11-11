@@ -123,17 +123,17 @@ export default function DepartmentDetailPage() {
                             {initials(r.employee_name)}
                           </div>
                           <div>
-                            <p className="font-semibold text-slate-900">{r.employee_name}</p>
-                            <p className="font-mono text-xs text-slate-400">{r.employee_id}</p>
+                            <p className="font-semibold text-[var(--color-text-primary)]">{r.employee_name}</p>
+                            <p className="font-mono text-xs text-[var(--color-text-muted)]">{r.employee_id}</p>
                           </div>
                         </div>
                       </TD>
-                      <TD className="font-medium text-amber-600">{r.late_count_month}</TD>
-                      <TD className="font-medium text-emerald-600">{r.on_time_count_month}</TD>
-                      <TD className="font-medium text-red-600">{r.absent_count_month}</TD>
+                      <TD className="font-medium text-[var(--color-warning)]">{r.late_count_month}</TD>
+                      <TD className="font-medium text-[var(--color-success)]">{r.on_time_count_month}</TD>
+                      <TD className="font-medium text-[var(--color-danger)]">{r.absent_count_month}</TD>
                       {sortBy === "late" && (
                         <>
-                          <TD className="font-bold text-slate-900">
+                          <TD className="font-bold text-[var(--color-text-primary)]">
                             {r.concern_score != null ? r.concern_score.toFixed(1) : "—"}
                           </TD>
                           <TD>{r.avg_validity ?? "—"}</TD>

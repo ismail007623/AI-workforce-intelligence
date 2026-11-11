@@ -1,14 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Area,
   AreaChart,
-  Bar,
-  BarChart,
   CartesianGrid,
-  Cell,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -28,7 +26,8 @@ import { api } from "@/lib/api";
 import type { AttendanceRecord, DailyTrendPoint } from "@/lib/types";
 import { greeting, formatFullDate, formatTime, initials } from "@/lib/utils";
 import { StatCard } from "@/components/shared/StatCard";
-import { StatusBadge } from "@/components/shared/StatusBadge";
+import { AttendanceChart } from "@/components/shared/AttendanceChart";
+import { AttendanceStatusBadge } from "@/components/shared/AttendanceStatusBadge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LoadingGrid } from "@/components/shared/states";
@@ -44,14 +43,17 @@ function delta(curr?: number, prev?: number): { trend?: string; dir?: "up" | "do
 }
 
 export default function HrDashboardPage() {
+  const [range, setRange] = useState(7);
+  const [deptFilter, setDeptFilter] = useState("All");
+
   const summaryQ = useQuery({
     queryKey: ["dashboard-summary"],
     queryFn: api.getDashboardSummary,
     refetchInterval: 30_000,
   });
   const trendQ = useQuery({
-    queryKey: ["dashboard-trend"],
-    queryFn: () => api.getAttendanceTrend(7),
+    queryKey: ["dashboard-trend", range],
+    queryFn: () => api.getAttendanceTrend(range),
     refetchInterval: 60_000,
   });
   const deptQ = useQuery({
@@ -69,6 +71,11 @@ export default function HrDashboardPage() {
   const trend = trendQ.data ?? [];
   const depts = deptQ.data ?? [];
 
+  // Department filter applies to the department chart and the live
+  // check-in list below. KPI cards stay company-wide.
+  const visibleDepts =
+    deptFilter === "All" ? depts : depts.filter((d) => d.department === deptFilter);
+
   const today: DailyTrendPoint | undefined = trend.at(-1);
   const yesterday: DailyTrendPoint | undefined = trend.length >= 2 ? trend.at(-2) : undefined;
 
@@ -77,6 +84,7 @@ export default function HrDashboardPage() {
 
   const liveRecords: AttendanceRecord[] = [...(todayQ.data ?? [])]
     .filter((r) => r.check_in_time)
+    .filter((r) => deptFilter === "All" || r.department === deptFilter)
     .sort(
       (a, b) =>
         new Date(b.check_in_time!).getTime() - new Date(a.check_in_time!).getTime(),
@@ -107,12 +115,55 @@ export default function HrDashboardPage() {
         </Link>
       </div>
 
+      {/* Date range + department filters */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div
+          role="group"
+          aria-label="Trend range"
+          className="inline-flex rounded-full border border-[var(--color-border)] bg-[var(--color-bg-soft)] p-1"
+        >
+          {[7, 14, 30].map((days) => (
+            <button
+              key={days}
+              type="button"
+              aria-pressed={range === days}
+              onClick={() => setRange(days)}
+              className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors duration-200 ${
+                range === days
+                  ? "bg-white text-[var(--color-text-primary)] shadow-sm"
+                  : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+              }`}
+            >
+              Last {days} days
+            </button>
+          ))}
+        </div>
+        <label className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
+          Department
+          <select
+            value={deptFilter}
+            onChange={(e) => setDeptFilter(e.target.value)}
+            className="h-9 rounded-[var(--radius-md)] border border-[var(--color-border-strong)] bg-white px-2.5 text-sm font-medium text-[var(--color-text-primary)] focus:border-[var(--color-primary-light)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/15"
+          >
+            <option value="All">All departments</option>
+            {depts.map((d) => (
+              <option key={d.department} value={d.department}>
+                {d.department}
+              </option>
+            ))}
+          </select>
+        </label>
+        <p className="text-xs text-[var(--color-text-muted)]">
+          Filters apply to the charts and live list below. KPI cards stay company-wide.
+        </p>
+      </div>
+
       {/* KPIs */}
       {summaryQ.isLoading ? (
         <LoadingGrid count={4} />
       ) : !summary ? (
         <Card>
-          <CardContent className="py-10 text-center text-sm text-red-500">
+          <CardContent className="py-10 text-center text-sm text-[var(--color-danger)]">
             Failed to load dashboard. Make sure the API server is running.
           </CardContent>
         </Card>
@@ -122,28 +173,28 @@ export default function HrDashboardPage() {
             title="Total Employees"
             value={summary.total_employees}
             icon={Users}
-            iconClassName="bg-slate-100 text-slate-600"
+            iconClassName="bg-[var(--color-bg-soft)] text-[var(--color-text-secondary)]"
             trend="Active workforce"
           />
           <StatCard
             title="Present"
             value={summary.present}
             icon={CheckCircle2}
-            iconClassName="bg-emerald-50 text-emerald-600"
+            iconClassName="bg-[var(--color-success-light)] text-[var(--color-success)]"
             {...delta(checkedIn(today), checkedIn(yesterday))}
           />
           <StatCard
             title="Late"
             value={summary.late}
             icon={Clock}
-            iconClassName="bg-amber-50 text-amber-600"
+            iconClassName="bg-[var(--color-warning-light)] text-[var(--color-warning)]"
             {...delta(today?.late, yesterday?.late)}
           />
           <StatCard
             title="Absent"
             value={summary.absent}
             icon={UserX}
-            iconClassName="bg-red-50 text-red-600"
+            iconClassName="bg-[var(--color-danger-light)] text-[var(--color-danger)]"
             {...delta(today?.absent, yesterday?.absent)}
           />
           <StatCard
@@ -163,7 +214,7 @@ export default function HrDashboardPage() {
         <Card className="lg:col-span-3">
           <CardHeader>
             <CardTitle>Attendance Trend</CardTitle>
-            <CardDescription>Daily present / late / absent over the last 7 days</CardDescription>
+            <CardDescription>Daily present / late / absent over the last {range} days</CardDescription>
           </CardHeader>
           <CardContent>
             {trendQ.isLoading ? (
@@ -173,23 +224,23 @@ export default function HrDashboardPage() {
                 <AreaChart data={trend} margin={{ top: 6, right: 8, left: -18, bottom: 0 }}>
                   <defs>
                     <linearGradient id="gPresent" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+                      <stop offset="0%" stopColor="#15966a" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="#15966a" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="gLate" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="#f59e0b" stopOpacity={0} />
+                      <stop offset="0%" stopColor="#d58b25" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="#d58b25" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e8e9f1" vertical={false} />
                   <XAxis
                     dataKey="day"
-                    tick={{ fontSize: 12, fill: "#94a3b8" }}
+                    tick={{ fontSize: 12, fill: "#6b7085" }}
                     axisLine={false}
                     tickLine={false}
                   />
                   <YAxis
-                    tick={{ fontSize: 12, fill: "#94a3b8" }}
+                    tick={{ fontSize: 12, fill: "#6b7085" }}
                     axisLine={false}
                     tickLine={false}
                     allowDecimals={false}
@@ -199,7 +250,7 @@ export default function HrDashboardPage() {
                     type="monotone"
                     dataKey="present"
                     name="Present"
-                    stroke="#10b981"
+                    stroke="#15966a"
                     strokeWidth={2}
                     fill="url(#gPresent)"
                   />
@@ -207,7 +258,7 @@ export default function HrDashboardPage() {
                     type="monotone"
                     dataKey="late"
                     name="Late"
-                    stroke="#f59e0b"
+                    stroke="#d58b25"
                     strokeWidth={2}
                     fill="url(#gLate)"
                   />
@@ -215,7 +266,7 @@ export default function HrDashboardPage() {
                     type="monotone"
                     dataKey="absent"
                     name="Absent"
-                    stroke="#ef4444"
+                    stroke="#dc5263"
                     strokeWidth={2}
                     fill="transparent"
                   />
@@ -235,41 +286,23 @@ export default function HrDashboardPage() {
           <CardContent>
             {deptQ.isLoading ? (
               <Skeleton className="h-64 w-full rounded-xl" />
-            ) : depts.length === 0 ? (
-              <p className="py-16 text-center text-sm text-slate-400">No department data.</p>
+            ) : visibleDepts.length === 0 ? (
+              <p className="py-16 text-center text-sm text-[var(--color-text-muted)]">No department data.</p>
             ) : (
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={depts} margin={{ top: 6, right: 8, left: -18, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                  <XAxis
-                    dataKey="department"
-                    tick={{ fontSize: 11, fill: "#94a3b8" }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    unit="%"
-                    tick={{ fontSize: 12, fill: "#94a3b8" }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <Tooltip content={<ChartTooltip suffix="%" single />} />
-                  <Bar dataKey="lateness_rate" name="Lateness" radius={[6, 6, 0, 0]}>
-                    {depts.map((d, i) => (
-                      <Cell
-                        key={i}
-                        fill={
-                          d.lateness_rate >= 40
-                            ? "#ef4444"
-                            : d.lateness_rate >= 20
-                              ? "#f59e0b"
-                              : "#6366f1"
-                        }
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <AttendanceChart
+                data={visibleDepts}
+                categoryKey="department"
+                valueKey="lateness_rate"
+                valueName="Lateness"
+                suffix="%"
+                height={260}
+                colorFor={(d) => {
+                  const rate = Number(d.lateness_rate);
+                  if (rate >= 40) return "#dc5263";
+                  if (rate >= 20) return "#d58b25";
+                  return "#6554e8";
+                }}
+              />
             )}
           </CardContent>
         </Card>
@@ -298,11 +331,11 @@ export default function HrDashboardPage() {
                 ))}
               </div>
             ) : liveRecords.length === 0 ? (
-              <p className="py-10 text-center text-sm text-slate-400">
+              <p className="py-10 text-center text-sm text-[var(--color-text-muted)]">
                 No check-ins recorded yet today.
               </p>
             ) : (
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-[var(--color-border)]">
                 {liveRecords.map((r) => (
                   <div key={r.employee_id} className="flex items-center justify-between py-3">
                     <div className="flex items-center gap-3">
@@ -310,15 +343,15 @@ export default function HrDashboardPage() {
                         {initials(r.employee_name)}
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-slate-900">{r.employee_name}</p>
-                        <p className="text-xs text-slate-400">{r.department}</p>
+                        <p className="text-sm font-semibold text-[var(--color-text-primary)]">{r.employee_name}</p>
+                        <p className="text-xs text-[var(--color-text-muted)]">{r.department}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium text-slate-500">
+                      <span className="text-sm font-medium text-[var(--color-text-secondary)]">
                         {formatTime(r.check_in_time)}
                       </span>
-                      <StatusBadge status={r.check_in_status} />
+                      <AttendanceStatusBadge status={r.check_in_status} />
                     </div>
                   </div>
                 ))}
@@ -336,19 +369,19 @@ export default function HrDashboardPage() {
           <CardContent className="space-y-2.5">
             {attention.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
-                <CheckCircle2 className="h-8 w-8 text-emerald-500" />
-                <p className="mt-2 text-sm font-medium text-slate-600">All clear</p>
-                <p className="text-xs text-slate-400">No issues require attention.</p>
+                <CheckCircle2 className="h-8 w-8 text-[var(--color-success)]" />
+                <p className="mt-2 text-sm font-medium text-[var(--color-text-secondary)]">All clear</p>
+                <p className="text-xs text-[var(--color-text-muted)]">No issues require attention.</p>
               </div>
             ) : (
               attention.map((a) => (
                 <div
                   key={a.text}
-                  className="flex items-start justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50/60 p-3"
+                  className="flex items-start justify-between gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-soft)]/60 p-3"
                 >
                   <div className="flex items-start gap-2.5">
-                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-                    <p className="text-sm text-slate-600">{a.text}</p>
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-warning)]" />
+                    <p className="text-sm text-[var(--color-text-secondary)]">{a.text}</p>
                   </div>
                   <span
                     className={`shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase ${a.cls}`}
@@ -367,16 +400,16 @@ export default function HrDashboardPage() {
 
 function Legend() {
   const items = [
-    { label: "Present", color: "#10b981" },
-    { label: "Late", color: "#f59e0b" },
-    { label: "Absent", color: "#ef4444" },
+    { label: "Present", color: "#15966a" },
+    { label: "Late", color: "#d58b25" },
+    { label: "Absent", color: "#dc5263" },
   ];
   return (
     <div className="mt-3 flex items-center justify-center gap-5">
       {items.map((i) => (
         <div key={i.label} className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-full" style={{ background: i.color }} />
-          <span className="text-xs font-medium text-slate-500">{i.label}</span>
+          <span className="text-xs font-medium text-[var(--color-text-secondary)]">{i.label}</span>
         </div>
       ))}
     </div>
@@ -398,8 +431,8 @@ function ChartTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 shadow-lg">
-      <p className="mb-1 text-xs font-semibold text-slate-400">{label}</p>
+    <div className="rounded-xl border border-[var(--color-border)] bg-white px-3.5 py-2.5 shadow-lg">
+      <p className="mb-1 text-xs font-semibold text-[var(--color-text-muted)]">{label}</p>
       {(single ? payload.slice(0, 1) : payload).map((p) => (
         <p key={p.name} className="text-sm font-medium" style={{ color: p.color ?? p.fill }}>
           {p.name}: {p.value}
@@ -431,13 +464,13 @@ function buildAttention(
     items.push({
       text: `${summary.absent} employee${summary.absent !== 1 ? "s" : ""} absent without check-in today`,
       level: "High",
-      cls: "bg-red-100 text-red-700",
+      cls: "bg-[var(--color-danger-light)] text-[var(--color-danger)]",
     });
   if (summary.late > 0)
     items.push({
       text: `${summary.late} employee${summary.late !== 1 ? "s" : ""} arrived late today`,
       level: "Medium",
-      cls: "bg-amber-100 text-amber-700",
+      cls: "bg-[var(--color-warning-light)] text-[var(--color-warning)]",
     });
 
   const highRiskDept = depts.find((d) => d.department_risk_level?.toLowerCase() === "high");
@@ -445,7 +478,7 @@ function buildAttention(
     items.push({
       text: `${highRiskDept.department} flagged as high discipline risk (weak/invalid reasons)`,
       level: "High",
-      cls: "bg-red-100 text-red-700",
+      cls: "bg-[var(--color-danger-light)] text-[var(--color-danger)]",
     });
 
   const invalidHeavy = [...depts]
@@ -455,7 +488,7 @@ function buildAttention(
     items.push({
       text: `${invalidHeavy.department} has ${invalidHeavy.invalid_reasons} invalid late reason${invalidHeavy.invalid_reasons !== 1 ? "s" : ""} today`,
       level: "Medium",
-      cls: "bg-amber-100 text-amber-700",
+      cls: "bg-[var(--color-warning-light)] text-[var(--color-warning)]",
     });
 
   const worst = [...depts].sort((a, b) => b.lateness_rate - a.lateness_rate)[0];
@@ -463,7 +496,7 @@ function buildAttention(
     items.push({
       text: `${worst.department} has the highest lateness rate (${worst.lateness_rate}%)`,
       level: "Medium",
-      cls: "bg-amber-100 text-amber-700",
+      cls: "bg-[var(--color-warning-light)] text-[var(--color-warning)]",
     });
 
   const lowAttendance = depts.filter(
@@ -473,7 +506,7 @@ function buildAttention(
     items.push({
       text: `${lowAttendance.length} department${lowAttendance.length !== 1 ? "s" : ""} below 80% attendance`,
       level: "Low",
-      cls: "bg-indigo-100 text-indigo-700",
+      cls: "bg-[var(--color-primary-xlight)] text-[var(--color-primary)]",
     });
 
   return items;

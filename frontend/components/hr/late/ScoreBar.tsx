@@ -17,7 +17,7 @@ export function ScoreBar({
   return (
     <div className="min-w-[60px]">
       <p className="text-[13px] font-bold text-[var(--color-text-primary)]">{value}</p>
-      <div className="mt-1 h-2 w-16 overflow-hidden rounded-full bg-slate-100">
+      <div className="mt-1 h-2 w-16 overflow-hidden rounded-full bg-[var(--color-bg-soft)]">
         <div
           className="h-full rounded-full"
           style={{ width: `${width}%`, backgroundColor: color }}

@@ -44,7 +44,7 @@ export function LateSummaryCards({
           </div>
         </div>
         <div className="mt-3 flex justify-end">
-          <Sparkline color="#a29bfe" />
+          <Sparkline color="#a49bf5" />
         </div>
       </div>
 
@@ -59,7 +59,7 @@ export function LateSummaryCards({
               {stats.highestDelay?.name ?? "No late arrivals"}
             </p>
           </div>
-          <div className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-sm)] bg-orange-50 text-orange-500">
+          <div className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--color-warning-light)] text-orange-500">
             <Clock className="h-[18px] w-[18px]" />
           </div>
         </div>
@@ -72,15 +72,15 @@ export function LateSummaryCards({
         <div className="flex items-start justify-between">
           <div>
             <p className="text-xs font-medium text-[var(--color-text-muted)]">High Risk Cases</p>
-            <p className="mt-1 text-[28px] font-bold leading-tight text-red-500">{stats.highRiskCount}</p>
+            <p className="mt-1 text-[28px] font-bold leading-tight text-[var(--color-danger)]">{stats.highRiskCount}</p>
             <p className="mt-0.5 text-xs text-[var(--color-text-muted)]">Risk score ≥ 80</p>
           </div>
-          <div className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-sm)] bg-red-50 text-red-500">
+          <div className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--color-danger-light)] text-[var(--color-danger)]">
             <Shield className="h-[18px] w-[18px]" />
           </div>
         </div>
         <div className="mt-3 flex justify-end">
-          <Sparkline color="#ef4444" />
+          <Sparkline color="#dc5263" />
         </div>
       </div>
 
@@ -90,7 +90,7 @@ export function LateSummaryCards({
             <p className="text-xs font-medium text-[var(--color-text-muted)]">AI Decision Summary</p>
             <div className="mt-2 space-y-1.5">
               <p className="flex items-center gap-1.5 text-[12px] text-[var(--color-text-secondary)]">
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                <CheckCircle2 className="h-3.5 w-3.5 text-[var(--color-success)]" />
                 {stats.acceptableCount} Acceptable
               </p>
               <p className="flex items-center gap-1.5 text-[12px] text-[var(--color-text-secondary)]">
@@ -101,7 +101,7 @@ export function LateSummaryCards({
           </div>
           <div className="h-16 w-16 shrink-0">
             {donutEmpty ? (
-              <div className="flex h-full w-full items-center justify-center rounded-full bg-slate-100 text-[10px] text-slate-400">
+              <div className="flex h-full w-full items-center justify-center rounded-full bg-[var(--color-bg-soft)] text-[10px] text-[var(--color-text-muted)]">
                 N/A
               </div>
             ) : (

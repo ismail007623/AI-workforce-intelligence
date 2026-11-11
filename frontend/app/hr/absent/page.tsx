@@ -81,7 +81,7 @@ export default function AbsentPage() {
       <button
         type="button"
         onClick={() => setSelectedDate(todayStr())}
-        className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-white px-3 py-2 text-[13px] font-semibold text-[var(--color-text-secondary)] shadow-sm transition-colors hover:bg-slate-50"
+        className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-white px-3 py-2 text-[13px] font-semibold text-[var(--color-text-secondary)] shadow-sm transition-colors hover:bg-[var(--color-bg-soft)]"
       >
         Clear
       </button>
@@ -138,12 +138,12 @@ export default function AbsentPage() {
                     <TR key={r.employee_id}>
                       <TD>
                         <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-red-100 text-xs font-bold text-red-700">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-danger-light)] text-xs font-bold text-[var(--color-danger)]">
                             {initials(r.employee_name)}
                           </div>
                           <div>
-                            <p className="font-semibold text-slate-900">{r.employee_name}</p>
-                            <p className="font-mono text-xs text-slate-400">{r.employee_id}</p>
+                            <p className="font-semibold text-[var(--color-text-primary)]">{r.employee_name}</p>
+                            <p className="font-mono text-xs text-[var(--color-text-muted)]">{r.employee_id}</p>
                           </div>
                         </div>
                       </TD>
@@ -167,7 +167,7 @@ export default function AbsentPage() {
                     type="button"
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page === 1}
-                    className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-white text-[var(--color-text-muted)] transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-white text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-bg-soft)] disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </button>
@@ -180,7 +180,7 @@ export default function AbsentPage() {
                       className={`flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] border text-[13px] font-semibold transition-colors ${
                         p === page
                           ? "border-[var(--color-primary)] bg-[var(--color-primary-xlight)] text-[var(--color-primary)]"
-                          : "border-[var(--color-border)] bg-white text-[var(--color-text-secondary)] hover:bg-slate-50"
+                          : "border-[var(--color-border)] bg-white text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-soft)]"
                       }`}
                     >
                       {p}
@@ -191,7 +191,7 @@ export default function AbsentPage() {
                     type="button"
                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     disabled={page === totalPages}
-                    className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-white text-[var(--color-text-muted)] transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-white text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-bg-soft)] disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </button>

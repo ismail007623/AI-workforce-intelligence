@@ -54,23 +54,23 @@ export const hrNav: NavSection[] = [
   {
     title: "Overview",
     items: [
-      { label: "Dashboard", icon: LayoutDashboard, href: "/hr" },
+      { label: "Overview", icon: LayoutDashboard, href: "/hr" },
       { label: "Live Attendance", icon: Clock, href: "/hr/live" },
     ],
   },
   {
     title: "Workforce",
     items: [
-      { label: "Late Arrivals", icon: Clock, href: "/hr/late" },
-      { label: "Absentees", icon: UserX, href: "/hr/absent" },
-      { label: "Departments", icon: Building2, href: "/hr/departments" },
+      { label: "Late Employees", icon: Clock, href: "/hr/late" },
+      { label: "Absent Employees", icon: UserX, href: "/hr/absent" },
+      { label: "Department Analytics", icon: Building2, href: "/hr/departments" },
       { label: "Employees", icon: Users, comingSoon: true },
     ],
   },
   {
     title: "Intelligence",
     items: [
-      { label: "AI Insights", icon: Brain, href: "/hr/insights" },
+      { label: "AI Attendance Insights", icon: Brain, href: "/hr/insights" },
       { label: "Reports", icon: FileText, comingSoon: true },
     ],
   },

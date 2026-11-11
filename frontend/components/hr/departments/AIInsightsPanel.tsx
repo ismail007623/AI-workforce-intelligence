@@ -51,7 +51,7 @@ function buildInsights(data: DepartmentStats[]): Insight[] {
     {
       icon: Clock,
       iconBg: "bg-[var(--color-warning-light)]",
-      iconColor: "text-amber-500",
+      iconColor: "text-[var(--color-warning)]",
       title: "Punctuality Watch",
       body:
         topLate.length > 0
@@ -78,7 +78,7 @@ export function AIInsightsPanel({
   const insights = buildInsights(data);
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-[0_4px_16px_rgba(30,20,60,0.06)]">
+    <div className="flex flex-col overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-[var(--shadow-card)]">
       {/* Header */}
       <div className="flex items-center gap-3 border-b border-[var(--color-border)] bg-gradient-to-r from-[var(--color-primary-xlight)] to-white px-5 py-4">
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[var(--color-primary)] shadow-sm">

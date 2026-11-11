@@ -1,10 +1,10 @@
 import type { LateIntelligenceRecord } from "@/lib/types";
 
 const AVATAR_PALETTE = [
-  { bg: "#ede9ff", text: "#6c5ce7" },
-  { bg: "#e0f8f3", text: "#00b894" },
-  { bg: "#fff4e5", text: "#e17055" },
-  { bg: "#eaf4ff", text: "#0984e3" },
+  { bg: "#f3f1ff", text: "#6554e8" },
+  { bg: "#e6f5ef", text: "#15966a" },
+  { bg: "#fbf3e4", text: "#dc5263" },
+  { bg: "#edf2fd", text: "#0984e3" },
   { bg: "#fce4ec", text: "#d63031" },
   { bg: "#f3e5f5", text: "#8e44ad" },
   { bg: "#e8f5e9", text: "#2e7d32" },
@@ -29,9 +29,9 @@ export function avatarColor(employeeId: string) {
 }
 
 export function latePillClass(minutes: number): string {
-  if (minutes >= 90) return "bg-red-100 text-red-600 ring-red-300";
-  if (minutes >= 60) return "bg-orange-100 text-orange-600 ring-orange-300";
-  return "bg-amber-100 text-amber-700 ring-amber-300";
+  if (minutes >= 90) return "bg-[var(--color-danger-light)] text-[var(--color-danger)] ring-red-300";
+  if (minutes >= 60) return "bg-orange-100 text-[var(--color-warning)] ring-orange-300";
+  return "bg-[var(--color-warning-light)] text-[var(--color-warning)] ring-[var(--color-warning)]/30";
 }
 
 export function scoreBarColor(value: number, inverted = false): string {
@@ -39,7 +39,7 @@ export function scoreBarColor(value: number, inverted = false): string {
   if (v > 75) return "#22c55e";
   if (v >= 60) return "#eab308";
   if (v >= 30) return "#f97316";
-  return "#ef4444";
+  return "#dc5263";
 }
 
 export function decisionVariant(

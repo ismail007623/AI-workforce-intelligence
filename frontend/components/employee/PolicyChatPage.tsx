@@ -98,7 +98,7 @@ function MessageBubble({ msg }: { msg: ChatMsg }) {
         <div
           className={`max-w-[75%] rounded-2xl rounded-br-sm px-4 py-3 text-[14px] leading-relaxed shadow-sm ${
             msg.error
-              ? "bg-red-100 text-red-700"
+              ? "bg-[var(--color-danger-light)] text-[var(--color-danger)]"
               : "bg-[var(--color-primary)] text-white"
           }`}
         >
@@ -115,7 +115,7 @@ function MessageBubble({ msg }: { msg: ChatMsg }) {
         <div
           className={`rounded-2xl rounded-bl-sm border px-4 py-3 text-[14px] leading-relaxed shadow-sm ${
             msg.error
-              ? "border-red-200 bg-red-50 text-red-700"
+              ? "border-red-200 bg-[var(--color-danger-light)] text-[var(--color-danger)]"
               : "border-[var(--color-border)] bg-white text-[var(--color-text-primary)]"
           }`}
         >
@@ -236,9 +236,9 @@ export function PolicyChatPage() {
           <p className="text-[15px] font-bold text-[var(--color-text-primary)]">Policy Assistant</p>
           <p className="text-[12px] text-[var(--color-text-muted)]">Powered by AI · Company policy Q&amp;A</p>
         </div>
-        <div className="ml-auto flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1">
-          <span className="h-2 w-2 rounded-full bg-emerald-500" />
-          <span className="text-[11px] font-semibold text-emerald-600">Online</span>
+        <div className="ml-auto flex items-center gap-1.5 rounded-full bg-[var(--color-success-light)] px-3 py-1">
+          <span className="h-2 w-2 rounded-full bg-[var(--color-success-light)]0" />
+          <span className="text-[11px] font-semibold text-[var(--color-success)]">Online</span>
         </div>
       </div>
 

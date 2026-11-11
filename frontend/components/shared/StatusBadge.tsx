@@ -25,7 +25,7 @@ const VARIANTS = new Set([
 ]);
 
 export function StatusBadge({ status }: { status: string | null | undefined }) {
-  if (!status) return <span className="text-sm text-slate-400">—</span>;
+  if (!status) return <span className="text-sm text-[var(--color-text-muted)]">—</span>;
   const variant = (VARIANTS.has(status) ? status : "neutral") as never;
   return <Badge variant={variant}>{LABELS[status] ?? status}</Badge>;
 }

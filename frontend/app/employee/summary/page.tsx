@@ -11,9 +11,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ErrorState, LoadingGrid } from "@/components/shared/states";
 
 const RISK_TONE: Record<string, string> = {
-  low: "bg-emerald-50 text-emerald-600",
-  medium: "bg-amber-50 text-amber-600",
-  high: "bg-red-50 text-red-600",
+  low: "bg-[var(--color-success-light)] text-[var(--color-success)]",
+  medium: "bg-[var(--color-warning-light)] text-[var(--color-warning)]",
+  high: "bg-[var(--color-danger-light)] text-[var(--color-danger)]",
 };
 
 export default function EmployeeSummaryPage() {
@@ -43,11 +43,11 @@ export default function EmployeeSummaryPage() {
               title="Attendance rate"
               value={`${data.attendance_rate_this_month}%`}
               icon={TrendingUp}
-              iconClassName="bg-indigo-50 text-indigo-600"
+              iconClassName="bg-[var(--color-primary-xlight)] text-[var(--color-primary)]"
               footer={
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--color-bg-soft)]">
                   <div
-                    className="h-full rounded-full bg-indigo-500"
+                    className="h-full rounded-full bg-[var(--color-primary-xlight)]0"
                     style={{ width: `${data.attendance_rate_this_month}%` }}
                   />
                 </div>
@@ -57,7 +57,7 @@ export default function EmployeeSummaryPage() {
               title="Late arrivals"
               value={data.late_arrivals_this_month}
               icon={Clock}
-              iconClassName="bg-amber-50 text-amber-600"
+              iconClassName="bg-[var(--color-warning-light)] text-[var(--color-warning)]"
               trend="this month"
             />
             <StatCard
@@ -71,7 +71,7 @@ export default function EmployeeSummaryPage() {
               title="Risk level"
               value={data.risk_level.charAt(0).toUpperCase() + data.risk_level.slice(1)}
               icon={ShieldAlert}
-              iconClassName={RISK_TONE[data.risk_level] ?? "bg-slate-100 text-slate-500"}
+              iconClassName={RISK_TONE[data.risk_level] ?? "bg-[var(--color-bg-soft)] text-[var(--color-text-secondary)]"}
             />
           </div>
 
@@ -105,9 +105,9 @@ function Row({
   mono?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between border-b border-slate-100 py-3 last:border-0">
-      <span className="text-sm text-slate-500">{label}</span>
-      <span className={`text-sm font-semibold text-slate-900 ${mono ? "font-mono" : ""}`}>
+    <div className="flex items-center justify-between border-b border-[var(--color-border)] py-3 last:border-0">
+      <span className="text-sm text-[var(--color-text-secondary)]">{label}</span>
+      <span className={`text-sm font-semibold text-[var(--color-text-primary)] ${mono ? "font-mono" : ""}`}>
         {value}
       </span>
     </div>

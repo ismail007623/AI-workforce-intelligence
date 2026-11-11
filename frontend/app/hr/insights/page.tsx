@@ -158,9 +158,9 @@ export default function InsightsPage() {
 
       {/* Error */}
       {error && (
-        <Card className="border-red-100 animate-fade-in">
+        <Card className="border-[var(--color-border)] animate-fade-in">
           <CardContent className="flex items-start gap-3 py-5">
-            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[var(--color-danger)]" />
             <div>
               <p className="text-sm font-semibold text-[var(--color-text-primary)]">Couldn&apos;t generate insights</p>
               <p className="mt-0.5 text-sm text-[var(--color-text-muted)]">{error}</p>
@@ -193,13 +193,13 @@ export default function InsightsPage() {
               <Card>
                 <CardContent className="p-5">
                   <div className="mb-3 flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                    <CheckCircle2 className="h-4 w-4 text-[var(--color-success)]" />
                     <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Key Findings</h3>
                   </div>
                   <ul className="space-y-2.5">
                     {result.key_findings.map((f, i) => (
                       <li key={i} className="flex gap-2.5 text-sm text-[var(--color-text-secondary)]">
-                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
+                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-success-light)]0" />
                         {f}
                       </li>
                     ))}
@@ -212,13 +212,13 @@ export default function InsightsPage() {
               <Card>
                 <CardContent className="p-5">
                   <div className="mb-3 flex items-center gap-2">
-                    <Lightbulb className="h-4 w-4 text-amber-500" />
+                    <Lightbulb className="h-4 w-4 text-[var(--color-warning)]" />
                     <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Recommendations</h3>
                   </div>
                   <ul className="space-y-2.5">
                     {result.recommendations.map((r, i) => (
                       <li key={i} className="flex gap-2.5 text-sm text-[var(--color-text-secondary)]">
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-100 text-[10px] font-bold text-amber-700">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--color-warning-light)] text-[10px] font-bold text-[var(--color-warning)]">
                           {i + 1}
                         </span>
                         {r}

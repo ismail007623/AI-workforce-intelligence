@@ -92,7 +92,7 @@ export function DeptNeedsAttention({ data }: { data: DepartmentStats[] }) {
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <AttentionCard
-          accentColor="#f59e0b"
+          accentColor="#d58b25"
           icon={Clock}
           category="Most Late"
           department={mostLate.department}
@@ -100,7 +100,7 @@ export function DeptNeedsAttention({ data }: { data: DepartmentStats[] }) {
           risk={mostLate.department_risk_level}
         />
         <AttentionCard
-          accentColor="#ef4444"
+          accentColor="#dc5263"
           icon={TrendingDown}
           category="Lowest Attendance"
           department={lowestAttendance.department}
@@ -109,7 +109,7 @@ export function DeptNeedsAttention({ data }: { data: DepartmentStats[] }) {
           risk={lowestAttendance.department_risk_level}
         />
         <AttentionCard
-          accentColor="#6c5ce7"
+          accentColor="#6554e8"
           icon={AlertTriangle}
           category="Highest Risk"
           department={highestRisk.department}
