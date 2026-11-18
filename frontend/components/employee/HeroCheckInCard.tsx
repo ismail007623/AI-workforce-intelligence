@@ -220,7 +220,7 @@ export function HeroCheckInCard({
           <button
             type="button"
             onClick={handleCheckIn}
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-primary)] py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[var(--color-primary-dark)] active:scale-[0.99]"
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-[var(--color-primary)] py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[var(--color-primary-dark)] active:scale-[0.99]"
           >
             <MdLogin size={16} />
             Check In

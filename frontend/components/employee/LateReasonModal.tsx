@@ -42,7 +42,7 @@ export function LateReasonModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div
-        className="w-full max-w-md rounded-[var(--radius-xl)] bg-white p-6 shadow-xl"
+        className="w-full max-w-md rounded-[var(--radius-xl)] bg-white p-6 shadow-[var(--shadow-overlay)]"
         role="dialog"
         aria-modal="true"
         aria-labelledby="late-reason-title"

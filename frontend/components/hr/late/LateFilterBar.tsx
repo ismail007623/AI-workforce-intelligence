@@ -130,7 +130,7 @@ export function LateFilterBar({
         </button>
 
         {filtersOpen && (
-          <div className="absolute left-0 top-full z-50 mt-1.5 w-64 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-white p-4 shadow-xl">
+          <div className="absolute left-0 top-full z-50 mt-1.5 w-64 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-white p-4 shadow-[var(--shadow-overlay)]">
             <div className="mb-3 flex items-center justify-between">
               <p className="text-[12px] font-bold text-[var(--color-text-primary)]">Filters</p>
               {activeFilterCount > 0 && (
@@ -202,7 +202,7 @@ export function LateFilterBar({
         </button>
 
         {columnsOpen && (
-          <div className="absolute right-0 top-full z-50 mt-1.5 w-48 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-white p-4 shadow-xl">
+          <div className="absolute right-0 top-full z-50 mt-1.5 w-48 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-white p-4 shadow-[var(--shadow-overlay)]">
             <p className="mb-3 text-[12px] font-bold text-[var(--color-text-primary)]">Columns</p>
             <div className="space-y-2">
               {ALL_COLUMNS.map((col) => (

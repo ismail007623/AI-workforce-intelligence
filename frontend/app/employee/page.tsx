@@ -87,7 +87,7 @@ function PolicyAssistantCard() {
       </div>
       <Link
         href="/employee/policy-chat"
-        className="flex shrink-0 items-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-5 py-2.5 text-[13px] font-semibold text-white transition-colors duration-200 hover:bg-[var(--color-primary-dark)] active:scale-[0.99]"
+        className="flex shrink-0 items-center gap-2 rounded-full bg-[var(--color-primary)] px-5 py-2.5 text-[13px] font-semibold text-white transition-colors duration-200 hover:bg-[var(--color-primary-dark)] active:scale-[0.99]"
       >
         Ask a question
         <ArrowRight size={16} />
@@ -121,11 +121,12 @@ export default function EmployeeHomePage() {
   const firstName = employee!.name.split(" ")[0];
 
   return (
-    <div className="mx-auto max-w-[1280px] space-y-5">
+    <div className="mx-auto max-w-[1210px] space-y-5">
       {/* Top bar */}
       <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
         <div>
-          <h1 className="text-[22px] font-bold text-[var(--color-text-primary)]">
+          <p className="eyebrow">My workspace</p>
+          <h1 className="mt-2 text-[22px] font-bold text-[var(--color-text-primary)]">
             {greeting()}, {firstName}!
           </h1>
           <p className="mt-1 text-[13px] text-[var(--color-text-muted)]">

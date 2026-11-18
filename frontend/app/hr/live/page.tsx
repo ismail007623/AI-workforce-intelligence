@@ -40,6 +40,7 @@ export default function LiveAttendancePage() {
   return (
     <div className="space-y-6">
       <PageHeader
+        eyebrow="Live attendance"
         title="Live Attendance"
         description="Real-time check-ins across the organization today."
         action={

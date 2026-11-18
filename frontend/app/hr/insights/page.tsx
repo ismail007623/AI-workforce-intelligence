@@ -75,6 +75,7 @@ export default function InsightsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
+        eyebrow="AI Insights"
         title="AI Workforce Insights"
         description="Ask questions about attendance."
       />

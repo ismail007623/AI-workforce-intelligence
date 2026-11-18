@@ -98,7 +98,8 @@ export default function HrDashboardPage() {
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-[13px] font-medium text-[var(--color-text-muted)]">{formatFullDate()}</p>
+          <p className="eyebrow">Overview</p>
+          <p className="mt-2 text-[13px] font-medium text-[var(--color-text-muted)]">{formatFullDate()}</p>
           <h1 className="mt-1 text-[22px] font-bold text-[var(--color-text-primary)]">
             {greeting()}, HR Admin
           </h1>
@@ -108,7 +109,7 @@ export default function HrDashboardPage() {
         </div>
         <Link
           href="/hr/insights"
-          className="inline-flex items-center gap-2 self-start rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[var(--color-primary-dark)] active:scale-[0.97]"
+          className="inline-flex items-center gap-2 self-start rounded-full bg-[var(--color-primary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[var(--color-primary-dark)] active:scale-[0.97]"
         >
           <Sparkles className="h-4 w-4" />
           Ask AI Assistant
@@ -431,7 +432,7 @@ function ChartTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl border border-[var(--color-border)] bg-white px-3.5 py-2.5 shadow-lg">
+    <div className="rounded-xl border border-[var(--color-border)] bg-white px-3.5 py-2.5 shadow-[var(--shadow-overlay)]">
       <p className="mb-1 text-xs font-semibold text-[var(--color-text-muted)]">{label}</p>
       {(single ? payload.slice(0, 1) : payload).map((p) => (
         <p key={p.name} className="text-sm font-medium" style={{ color: p.color ?? p.fill }}>

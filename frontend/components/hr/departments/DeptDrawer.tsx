@@ -70,7 +70,7 @@ export function DeptDrawer({
       />
 
       {/* Panel */}
-      <aside className="fixed inset-y-0 right-0 z-50 flex w-80 flex-col border-l border-[var(--color-border)] bg-white shadow-2xl">
+      <aside className="fixed inset-y-0 right-0 z-50 flex w-80 flex-col border-l border-[var(--color-border)] bg-white shadow-[var(--shadow-overlay)]">
         {/* Header */}
         <div className="flex shrink-0 items-start justify-between gap-3 border-b border-[var(--color-border)] px-5 py-4">
           <div className="min-w-0">
@@ -176,7 +176,7 @@ export function DeptDrawer({
         <div className="shrink-0 border-t border-[var(--color-border)] px-5 py-4">
           <Link
             href={deptHref}
-            className="flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2.5 text-[13px] font-semibold text-white transition-opacity hover:opacity-90"
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--color-primary)] px-4 py-2.5 text-[13px] font-semibold text-white transition-opacity hover:opacity-90"
           >
             View full department
             <ArrowRight className="h-3.5 w-3.5" />

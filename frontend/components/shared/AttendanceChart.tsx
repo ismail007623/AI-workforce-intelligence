@@ -80,7 +80,7 @@ function AttendanceChartTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-[var(--color-border)] bg-white px-3 py-2 shadow-md">
+    <div className="rounded-lg border border-[var(--color-border)] bg-white px-3 py-2 shadow-[var(--shadow-overlay)]">
       <p className="mb-1 text-xs font-semibold text-[var(--color-text-muted)]">{label}</p>
       {payload.map((p) => (
         <p key={p.name} className="text-xs font-medium" style={{ color: p.color }}>

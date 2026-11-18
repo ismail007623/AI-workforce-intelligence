@@ -7,6 +7,7 @@ export default function PolicyPage() {
   return (
     <div className="space-y-6">
       <PageHeader
+        eyebrow="Company policy"
         title="Company Policy"
         description="Upload and manage the company policy document for AI-powered reference."
       />

@@ -24,6 +24,7 @@ export default function EmployeeHistoryPage() {
   return (
     <div className="space-y-6">
       <PageHeader
+        eyebrow="My attendance"
         title="My Attendance"
         description="Your personal attendance history"
       />

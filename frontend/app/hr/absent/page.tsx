@@ -91,6 +91,7 @@ export default function AbsentPage() {
   return (
     <div className="space-y-4">
       <PageHeader
+        eyebrow="Absent employees"
         title="Absentees"
         description="Employees who have not checked in on the selected date."
         action={controls}

@@ -13,7 +13,7 @@ export function ComingSoonModal({
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-[var(--color-text-primary)]/40 backdrop-blur-sm" />
       <div
-        className="relative w-full max-w-sm animate-scale-in rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-white p-6 shadow-2xl"
+        className="relative w-full max-w-sm animate-scale-in rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-white p-6 shadow-[var(--shadow-overlay)]"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -48,7 +48,7 @@ export function ComingSoonModal({
         <button
           type="button"
           onClick={onClose}
-          className="mt-6 w-full rounded-[var(--radius-md)] bg-[var(--color-primary)] py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary-dark)] active:scale-[0.97]"
+          className="mt-6 w-full rounded-full bg-[var(--color-primary)] py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary-dark)] active:scale-[0.97]"
         >
           Got it
         </button>

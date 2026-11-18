@@ -28,6 +28,7 @@ export default function EmployeeSummaryPage() {
   return (
     <div className="space-y-6">
       <PageHeader
+        eyebrow="My summary"
         title="My Summary"
         description="Your attendance performance this month."
       />

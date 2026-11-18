@@ -24,7 +24,7 @@ export function ProgressBanner({ name }: { name: string }) {
       </div>
       <Link
         href="/employee/summary"
-        className="flex shrink-0 items-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-5 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-[var(--color-primary-dark)] active:scale-[0.97]"
+        className="flex shrink-0 items-center gap-2 rounded-full bg-[var(--color-primary)] px-5 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-[var(--color-primary-dark)] active:scale-[0.97]"
       >
         <FiBarChart2 size={16} />
         View My Progress

@@ -61,6 +61,7 @@ export default function DepartmentsPage() {
     return (
       <div className="space-y-6">
         <PageHeader
+          eyebrow="Departments"
           title="Departments"
           description="Monitor department attendance, punctuality, and workforce risk across the organization."
         />
@@ -72,6 +73,7 @@ export default function DepartmentsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
+        eyebrow="Departments"
         title="Departments"
         description="Monitor department attendance, punctuality, and workforce risk across the organization."
         action={headerActions}

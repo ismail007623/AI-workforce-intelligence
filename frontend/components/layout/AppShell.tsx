@@ -169,7 +169,7 @@ export function AppShell({
             className="absolute inset-0 bg-[#17172b]/40 backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}
           />
-          <aside className="absolute inset-y-0 left-0 w-72 bg-white shadow-2xl">
+          <aside className="absolute inset-y-0 left-0 w-72 border-r border-[var(--color-border)] bg-white shadow-[var(--shadow-overlay)]">
             <button
               type="button"
               onClick={() => setMobileOpen(false)}
@@ -217,7 +217,7 @@ export function AppShell({
         </header>
 
         <main className="flex-1 p-4 sm:p-6">
-          <div className="mx-auto w-full max-w-[1280px]">{children}</div>
+          <div className="mx-auto w-full max-w-[1210px]">{children}</div>
         </main>
       </div>
 

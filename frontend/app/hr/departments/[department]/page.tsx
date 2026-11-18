@@ -45,6 +45,7 @@ export default function DepartmentDetailPage() {
       </Link>
 
       <PageHeader
+        eyebrow="Department"
         title={department}
         description="All employees in this department. Choose a sort option — Most Late triggers AI analysis of submitted reasons."
       />
