@@ -211,3 +211,32 @@ Fixed in `frontend/app/page.tsx` + `frontend/app/globals.css`:
 Verified: `tsc --noEmit` exit 0, `next build` exit 0 (all 20 pages),
 production smoke test `/` 200 + `/login` 200 with the gradient stops in
 the built CSS, 0 forbidden words, 0 `sk-` in the changed files.
+
+## Senior UI review gap fix — 2026-11-19
+
+Ismail shared the desired hero design and asked for a senior UI review:
+every gap between it and the built hero, then fix and push. Five gaps
+found by pixel comparison of his screenshots and fixed in
+`frontend/app/page.tsx` + `frontend/app/globals.css`:
+
+1. Stat cards: the number and its delta pill wrapped to two lines, and the
+   "On-time Rate" / "Late Arrivals" labels wrapped too — the dashboard
+   column was too narrow. Hero grid is now `0.92fr / 1.08fr` so the
+   dashboard is wider and number + pill sit on one line like the desired
+   design.
+2. 94% callout bubble: the desired design stacks it in three lines —
+   "94", "%" below it, "On-time rate" below that. The built one showed
+   "94%" on one line. Now stacked, still centred over the chart.
+3. Trend line: the desired line is a smooth curve; the built one was
+   straight segments with visible corners. The path is now a smooth
+   Catmull-Rom spline through the same five points (dip at Wed, dots at
+   Tue and Thu kept).
+4. "See how it works" button: the desired play icon is a circle with a
+   triangle inside; the built one was a plain filled triangle. Now uses
+   the circled-play icon.
+5. Background gradient: the top-middle of the built gradient was a little
+   too deep. Stops adjusted so it stays light there
+   (#F6F3FE at 28%), matching the sampled desired colours.
+
+Verified the same way as above (tsc + build + smoke test); the smooth
+curve path and the wider grid class are present in the served page.

@@ -21,7 +21,7 @@ import {
   Menu,
   MessageSquareText,
   MousePointerClick,
-  Play,
+  CirclePlay,
   Settings,
   ShieldCheck,
   Sparkles,
@@ -109,7 +109,7 @@ function CountUp({ value, suffix = "" }: { value: number; suffix?: string }) {
 /* and a dot travels along it. Reduced motion shows the final line.  */
 /* ------------------------------------------------------------------ */
 
-const TREND_PATH = "M46,77 L112,64 L178,71 L244,55 L310,46";
+const TREND_PATH = "M46,77 C57,74.8 90,65 112,64 C134,65 156,72.5 178,71 C200,69.5 222,59.2 244,55 C266,50.8 299,47.5 310,46";
 const TREND_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 const TREND_X = [46, 112, 178, 244, 310];
 const TREND_Y_LABELS = [
@@ -344,9 +344,8 @@ function HeroDashboard() {
                 <div className="relative mt-1">
                   <TrendChart />
                   <div className="absolute left-[55%] top-[2%] z-10 -translate-x-1/2 whitespace-nowrap rounded-xl border border-[var(--color-border)] bg-white px-3 py-2 text-center shadow-[0_8px_24px_rgba(23,23,43,0.12)]">
-                    <p className="text-sm font-extrabold leading-none text-[var(--color-text-primary)]">
-                      94<span className="text-[11px]">%</span>
-                    </p>
+                    <p className="text-sm font-extrabold leading-none text-[var(--color-text-primary)]">94</p>
+                    <p className="text-[11px] font-bold leading-none text-[var(--color-text-primary)]">%</p>
                     <p className="mt-1 text-[10px] font-medium leading-none text-[var(--color-text-muted)]">On-time rate</p>
                   </div>
                 </div>
@@ -499,7 +498,7 @@ export default function LandingPage() {
           <path d="M-40 170 C 320 110, 740 250, 1480 130" stroke="#E3DCFA" strokeWidth="1.5" />
           <path d="M-40 660 C 420 580, 920 730, 1480 610" stroke="#E3DCFA" strokeWidth="1.5" />
         </svg>
-        <div className="relative mx-auto grid max-w-[1280px] items-center gap-12 px-4 pb-16 pt-32 sm:px-6 lg:min-h-[85vh] lg:grid-cols-2 lg:pb-[96px] lg:pt-[168px]">
+        <div className="relative mx-auto grid max-w-[1280px] items-center gap-12 px-4 pb-16 pt-32 sm:px-6 lg:min-h-[85vh] lg:grid-cols-[0.92fr_1.08fr] lg:pb-[96px] lg:pt-[168px]">
           <div>
             <h1 className="text-[52px] font-extrabold leading-[1.02] tracking-tight sm:text-[68px] lg:text-[76px]">
               <span className="block text-[var(--color-text-primary)]">Turn attendance</span>
@@ -514,7 +513,7 @@ export default function LandingPage() {
                 Get started free <ArrowRight className="h-4 w-4" />
               </a>
               <a href="#how" className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[var(--color-border-strong)] bg-white px-6 text-sm font-semibold text-[var(--color-text-primary)] transition-colors duration-200 hover:border-[var(--color-primary-light)] hover:text-[var(--color-primary)]">
-                <Play className="h-4 w-4 fill-current" /> See how it works
+                <CirclePlay className="h-5 w-5" /> See how it works
               </a>
             </div>
             <div className="mt-10 flex flex-wrap items-start gap-x-8 gap-y-4">
