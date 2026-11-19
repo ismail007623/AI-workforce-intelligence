@@ -331,6 +331,16 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
+/* Hero background — soft lavender gradient, light at the left and
+   deepening to the right, deepest at the bottom-right corner,
+   matching the sample (sampled: #F3F0FF left, #E1D5FE top-right,
+   #D9D2F5 bottom-right). */
+.hero-bg {
+  background:
+    radial-gradient(55% 45% at 92% 88%, rgba(217, 210, 245, 0.55), rgba(217, 210, 245, 0) 70%),
+    linear-gradient(115deg, #f3f0ff 0%, #f5f3fe 18%, #ece8fd 42%, #e1d5fe 74%, #d9d2f5 100%);
+}
+
 /* 3D tilted dashboard panel (desktop only; flat on small screens). */
 .hero-tilt {
   transform: perspective(1500px) rotateY(-9deg) rotateX(3deg);

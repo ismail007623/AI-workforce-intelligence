@@ -109,7 +109,7 @@ function CountUp({ value, suffix = "" }: { value: number; suffix?: string }) {
 /* and a dot travels along it. Reduced motion shows the final line.  */
 /* ------------------------------------------------------------------ */
 
-const TREND_PATH = "M46,88 L112,62 L178,42 L244,58 L310,30";
+const TREND_PATH = "M46,77 L112,64 L178,71 L244,55 L310,46";
 const TREND_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 const TREND_X = [46, 112, 178, 244, 310];
 const TREND_Y_LABELS = [
@@ -124,7 +124,7 @@ function TrendChart() {
   const pathRef = useRef<SVGPathElement>(null);
   const [length, setLength] = useState(1000);
   const [progress, setProgress] = useState(0);
-  const [dot, setDot] = useState({ x: 308, y: 26 });
+  const [dot, setDot] = useState({ x: 310, y: 46 });
 
   useEffect(() => {
     const path = pathRef.current;
@@ -164,7 +164,7 @@ function TrendChart() {
       <path
         d={`${TREND_PATH} L310,108 L46,108 Z`}
         fill="#6554E8"
-        fillOpacity="0.06"
+        fillOpacity="0.12"
         stroke="none"
       />
       <path
@@ -172,12 +172,14 @@ function TrendChart() {
         d={TREND_PATH}
         fill="none"
         stroke="#6554E8"
-        strokeWidth="2.5"
+        strokeWidth="3"
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeDasharray={length}
         strokeDashoffset={length * (1 - progress)}
       />
+      <circle cx="112" cy="64" r="4.5" fill="#6554E8" stroke="#ffffff" strokeWidth="2" />
+      <circle cx="244" cy="55" r="4.5" fill="#6554E8" stroke="#ffffff" strokeWidth="2" />
       <circle cx={dot.x} cy={dot.y} r="5" fill="#6554E8" stroke="#ffffff" strokeWidth="2" />
       {TREND_LABELS.map((label, i) => (
         <text key={label} x={TREND_X[i]} y="122" textAnchor="middle" fontSize="10" fill="#8A8FA3">
@@ -312,16 +314,16 @@ function HeroDashboard() {
                 { label: "Late Arrivals", icon: Clock, iconClass: "text-[var(--color-danger)]", value: <CountUp value={16} />, delta: { text: "↓ −37%", tone: "down" } },
                 { label: "Overtime", icon: Clock, iconClass: "text-[var(--color-primary)]", value: <CountUp value={128} suffix=" h" />, delta: null },
               ].map((s) => (
-                <div key={s.label} className="rounded-xl border border-[var(--color-border)] bg-white p-3">
+                <div key={s.label} className="rounded-xl border border-[var(--color-border)] bg-white px-2.5 py-3">
                   <p className="flex items-center gap-1.5 text-[11px] font-semibold leading-tight text-[var(--color-text-muted)]">
                     <s.icon className={`h-3.5 w-3.5 shrink-0 ${s.iconClass}`} />
                     {s.label}
                   </p>
-                  <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[22px] font-extrabold leading-none text-[var(--color-text-primary)]">
+                  <p className="mt-1.5 flex flex-wrap items-center gap-1 text-[20px] font-extrabold leading-none text-[var(--color-text-primary)]">
                     {s.value}
                     {s.delta && (
                       <span
-                        className={`rounded-full px-1.5 py-0.5 text-[11px] font-bold ${
+                        className={`rounded-full px-1 py-0.5 text-[10px] font-bold ${
                           s.delta.tone === "up"
                             ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
                             : "bg-[var(--color-danger-light)] text-[var(--color-danger)]"
@@ -341,7 +343,7 @@ function HeroDashboard() {
                 <p className="text-xs font-semibold text-[var(--color-text-primary)]">Attendance Trend</p>
                 <div className="relative mt-1">
                   <TrendChart />
-                  <div className="absolute left-[52%] top-[6%] z-10 rounded-xl border border-[var(--color-border)] bg-white px-3 py-2 text-center shadow-[0_8px_24px_rgba(23,23,43,0.12)]">
+                  <div className="absolute left-[55%] top-[2%] z-10 -translate-x-1/2 whitespace-nowrap rounded-xl border border-[var(--color-border)] bg-white px-3 py-2 text-center shadow-[0_8px_24px_rgba(23,23,43,0.12)]">
                     <p className="text-sm font-extrabold leading-none text-[var(--color-text-primary)]">
                       94<span className="text-[11px]">%</span>
                     </p>
@@ -491,11 +493,11 @@ export default function LandingPage() {
       </header>
 
       {/* Hero */}
-      <section className="relative overflow-hidden bg-[#F7F5FE]">
+      <section className="hero-bg relative overflow-hidden">
         <svg className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 1440 800" fill="none">
-          <path d="M-40 110 C 300 50, 720 190, 1480 70" stroke="#E6E1FB" strokeWidth="1.5" />
-          <path d="M-40 170 C 320 110, 740 250, 1480 130" stroke="#EDE9FD" strokeWidth="1.5" />
-          <path d="M-40 660 C 420 580, 920 730, 1480 610" stroke="#EDE9FD" strokeWidth="1.5" />
+          <path d="M-40 110 C 300 50, 720 190, 1480 70" stroke="#DCD4F7" strokeWidth="1.5" />
+          <path d="M-40 170 C 320 110, 740 250, 1480 130" stroke="#E3DCFA" strokeWidth="1.5" />
+          <path d="M-40 660 C 420 580, 920 730, 1480 610" stroke="#E3DCFA" strokeWidth="1.5" />
         </svg>
         <div className="relative mx-auto grid max-w-[1280px] items-center gap-12 px-4 pb-16 pt-32 sm:px-6 lg:min-h-[85vh] lg:grid-cols-2 lg:pb-[96px] lg:pt-[168px]">
           <div>

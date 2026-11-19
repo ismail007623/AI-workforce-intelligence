@@ -186,3 +186,28 @@ separate step at the end, as agreed.
 - No GitHub push (separate step after your check).
 - No payment integration (UI only, by design).
 - No backend, route, API, auth, or business-logic changes.
+
+## Hero background + dashboard card fix — 2026-11-19
+
+Ismail checked the pushed hero on localhost and the background colour did
+not match the sample, then sent a close-up of the sample dashboard card.
+Pixel-sampled from his screenshots: the sample hero background is a soft
+lavender gradient (light #F3F0FF at the left, #E1D5FE at the top-right,
+#D9D2F5 at the bottom-right corner); the built hero was one flat #F7F5FE.
+Fixed in `frontend/app/page.tsx` + `frontend/app/globals.css`:
+
+- Hero background is now the `.hero-bg` gradient (115deg linear +
+  bottom-right radial glow), with the decorative curves slightly deepened
+  so they still read on it.
+- 94% callout bubble: `whitespace-nowrap` + centred over the chart
+  (left 55%, translate -50%), so "On-time rate" stays on one line and the
+  bubble no longer covers most of the chart.
+- Stat cards: value 22px → 20px, delta pill tightened, card padding
+  reduced, so the number and its pill sit on one line like the sample.
+- Trend line: stroke 2.5 → 3, area fill 0.06 → 0.12, path reshaped to the
+  sample (dip at Wed), two static dots added at Tue and Thu, travelling
+  dot kept.
+
+Verified: `tsc --noEmit` exit 0, `next build` exit 0 (all 20 pages),
+production smoke test `/` 200 + `/login` 200 with the gradient stops in
+the built CSS, 0 forbidden words, 0 `sk-` in the changed files.
