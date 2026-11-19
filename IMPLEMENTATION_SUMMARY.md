@@ -1,139 +1,112 @@
-# Implementation Summary — JWT Login/Signup (uncommitted working tree)
+# Landing implementation — approved sample design in real code
 
-Base: HEAD `9f05004` (3 commits), GitHub
-`https://github.com/ismail007623/AI-workforce-intelligence`.
-Nothing was pushed, committed, or published. No real secret, key,
-password, or token appears in any file below.
+Built 2026-11-19 from the approved `ai-workforce-flowpilot-style-hero` sample.
+Base: pushed `main` head `82a9e0d4` (verified — local `frontend/app/page.tsx`
+sha256 matched the remote file exactly before building). **Frontend only —
+nothing under `backend/` was changed. Not pushed to GitHub.**
 
-## What was implemented
+## What changed (3 files)
 
-JWT access tokens (15 min default) + rotating refresh tokens (7 days
-default), bcrypt password hashing, and role/ownership checks on every
-existing router, following the user's Xeven endpoint/helper format
-(`dependencies=[Depends(JWTBearer())]`, `try:` body, `JSONResponse`
-envelope `{"data", "message", "status"}`, `logger.error(...)`, Google
-docstrings on helpers/services, PEP8). The `X-AWI-Role` / `X-AWI-User`
-header trust and the profile-picker are removed.
+- `frontend/app/page.tsx` — replaced wholesale with the 5-part flow:
+  Navbar → Hero → Features → How It Works → Pricing → Footer.
+  Old sections deleted: AI Bridge hero, benefits, numbered HR rows, employee
+  cards, 6-step workflow, AI insights showcase, role panels, dark final CTA.
+  The `recharts` import is gone. Session behaviour kept exactly
+  (`useSession`, role-based Dashboard href, `logout()` + `router.push("/")`).
+  Login, signup and company-signup pages untouched.
+- `frontend/components/landing/PaymentModal.tsx` — **new**, UI-only payment
+  modal (see below).
+- `frontend/app/globals.css` — **appended only**: hero gradient text,
+  `.hero-tilt` (perspective 1500px, rotateY −9° / rotateX 3°, flat ≤600px),
+  `.hero-float` (float on the wrapper only, so tilted text stays sharp),
+  `.live-dot` pulse, ticker animation, pricing-card hover. Existing
+  `prefers-reduced-motion` rules cover the new keyframes.
 
-### Backend — added
+## The page
 
-- `backend/app/core/security.py` — `hash_password`, `verify_password`,
-  `create_access_token`, `create_refresh_token`, `decode_token`
-  (type-claim checked, unique `jti` per token so two tokens issued in the
-  same second are never identical), `hash_refresh_token` (SHA-256; only hashes stored).
-- `backend/app/models/user.py` — `UserRole` (`employee`, `hr`), `User`
-  (email unique, `hashed_password`, role, `employee_id` FK unique,
-  `is_active`), `RefreshToken` (hash unique, expiry, revoked).
-- `backend/app/schemas/auth.py` — `SignupRequest`, `LoginRequest`,
-  `RefreshRequest`, `TokenPair`, `AuthUserResponse`, `AuthData`. No
-  password in any response schema.
-- `backend/app/services/auth_service.py` — `signup_user`,
-  `authenticate_user`, `refresh_tokens` (rotate + revoke old),
-  `revoke_refresh_token`, `get_user_profile`. Signup links to an
-  existing employee by `employee_id` or email (409 if that employee
-  already has an account), otherwise creates the employee (department
-  required) and auto-generates the next `EMP###` code. Login failures
-  use one generic 401 message.
-- `backend/app/core/auth_deps.py` — `JWTBearer`, `get_current_user`,
-  `require_hr_role`, `require_self_or_hr`, `require_self_not_hr`.
-- `backend/app/routers/auth.py` — `POST /auth/signup` (201),
-  `POST /auth/login`, `POST /auth/refresh` (rotates), `POST /auth/logout`
-  (JWTBearer + optional refresh body), `GET /auth/me`.
-- `backend/alembic/versions/b7c2d4e5f6a7_auth_users.py` — creates
-  `users` + `refresh_tokens` (down_revision `8410df4f6239`), with
-  downgrade.
-- `backend/app/seed_auth.py` — creates one HR user only from env vars
-  `AWI_SEED_HR_EMAIL` / `AWI_SEED_HR_PASSWORD` / `AWI_SEED_HR_NAME`.
-  Never logs the password.
-- `README_AUTH.md` — env vars, endpoints, protected-route list, seed
-  usage, production follow-ups.
+- **Navbar:** sticky, 76px, white + hairline border. Links: Features,
+  How it works, Pricing. Logged out: Log in + Get started pills. Logged in:
+  name + Dashboard + Log out. Mobile hamburger menu.
+- **Hero:** soft lavender background, ~82vh min-height, 96px vertical padding,
+  1280px container. Headline "Turn attendance data into workforce
+  intelligence." (second sentence in a purple→blue gradient). Subtext:
+  "Automate attendance, catch issues early, and turn workforce data into
+  actionable HR insights." Orange `#F0760A` "Get started free →" (#plans) +
+  white "See how it works" (#how). Three checkmark mini-benefits. Right: 3D
+  tilted dashboard (sidebar, HR Admin top bar, LIVE pulsing pill, count-up
+  stats 248 / 94% ↑+4% / 16 ↓−37% / 128 h, Mon–Fri trend line that draws
+  itself with a travelling dot, 94% callout, AI Insight card with the exact
+  37% text, live check-in ticker rotating Ali Raza / Hira Shahid /
+  Bilal Ahmed / Usman Ali every 3s). No floating toasts, no trusted-by row,
+  no eyebrow pill. Reduced motion shows final values with no animation.
+  NOTE: the dashboard numbers (248, 94%, 16, 128h) and the Features numbers
+  (96%, 12, 7, 7h 48m, 32h 15m) are the reference design's showcase numbers,
+  implemented exactly as shown — not real product data.
+- **Features (`#features`):** "PRODUCT FEATURES" pill (green dot), bento grid —
+  large Employee Portal card (5 green-check items + "My Attendance" panel:
+  09:02 AM, 7h 48m, 32h 15m, Policy Chatbot row), AI Attendance Insights
+  card, two small cards (self-service / HR visibility), large dark-purple
+  HR Portal card (6 white-check items + white dashboard panel: 96% / 12 / 7,
+  Eng/Sales/Ops/HR/Finance bars, Company Policy box).
+- **How It Works (`#how`):** lavender, 3 cards with purple arrows: 01 Set up
+  your company (Acme Technologies, avatars, Company Policy.pdf), 02 Track
+  attendance (09:00 AM, Mon 19 Nov, Checked In pill, Check Out button),
+  03 Get AI insights (37% text + recommendation box). Bottom strip: Quick
+  setup / Seamless for your team / Actionable from day one.
+- **Pricing (`#plans`):** working Monthly/Annual toggle with Save 20% badge
+  (Annual drops Pro $49 → $39; Free $0, Enterprise Custom unchanged).
+  Three compact cards with hover lift + purple shadow/border. Pro is Most
+  Popular with a tinted feature list. Trust row: Secure & Reliable,
+  Quick Setup, Dedicated Support.
+- **Footer:** existing 4-column footer kept. The old footer tagline was
+  removed from the bottom bar. No link points to `#insights`, `#portals`,
+  or `#faq`.
+- **Removed:** AI Insights standalone section, Portals section, FAQ section,
+  closing CTA banner, trusted-by logos, hero eyebrow pill.
 
-### Backend — changed
+## Payment UI — UI ONLY, no integration
 
-- `backend/app/core/config.py` — added `jwt_secret_key: str = ""`
-  (no default; auth fails fast when empty), `jwt_algorithm`,
-  `access_token_expire_minutes`, `refresh_token_expire_days`.
-- `pyproject.toml` — added `PyJWT>=2.10.0`, `bcrypt>=4.1.0`.
-- `.env.example` — JWT + seed placeholders (empty), with a comment to
-  generate a secret via `openssl rand -hex 32`. No `.env` was created.
-- `backend/app/core/deps.py` — now only re-exports from `auth_deps.py`;
-  header trust removed.
-- `backend/app/models/__init__.py`, `main.py` — export/import `User` /
-  `RefreshToken`; auth router mounted at `/api/v1`.
-- `backend/alembic/env.py` — imports `User` / `RefreshToken`.
-- Routers protected (existing response shapes kept, no envelope
-  conversion): `attendance.py` (check-in/out + late-reason self-only,
-  HR blocked; late-intelligence/today/absent HR only; history/summary
-  self-or-HR), `dashboard.py` (all HR only), `employees.py` (all HR
-  only, incl. insights), `policy.py` (HR only; `uploaded_by` now from
-  the token user), `policy_assistant.py` (authenticated, employee
-  self-only, HR allowed; auth failures keep the envelope shape with
-  401/403, unexpected errors are 500, not 404).
+"Subscribe to Free" / "Subscribe to Pro" open a modal with the chosen plan
+and price, card fields (card number, expiry, CVC, name on card) and a Pay
+button. **No Stripe/Paddle SDK, no API calls, no `fetch`, no keys, nothing is
+sent anywhere.** On submit it shows only: "Payment integration coming soon —
+this is a preview only." Closes via X, backdrop click, or Escape. "Contact
+sales" is a plain button (no modal, no navigation). Payment integration is a
+separate step at the end, as agreed.
 
-### Frontend — added / changed (same purple theme, no new deps)
+## Verification (independently re-run by the reviewer, not just the builder)
 
-- `frontend/lib/types.ts` — `AuthUser`, `TokenPair`, `AuthData`,
-  `LoginPayload`, `SignupPayload`, `RefreshPayload`, `AuthEnvelope<T>`.
-- `frontend/lib/api.ts` — removed `getHrHeaders` and all `X-AWI`
-  headers. Bearer token on every request; on 401 (non-auth calls) one
-  refresh attempt then one retry; upload/download also send the token
-  (download refreshes once). Exports `signup`, `login`,
-  `refreshTokens`, `logout`, `getMe`, token helpers. Tokens in
-  `localStorage` (`awi.access_token` / `awi.refresh_token`) — POC
-  choice, documented in code; httpOnly cookies are the production
-  follow-up.
-- `frontend/lib/session.tsx` — rewritten to JWT session: hydrates via
-  `/me` (refresh handled by `api`), `login`/`signup`/`logout`/
-  `clearSession`, legacy `awi.role`/`awi.employee` keys removed on
-  load. `setEmployeeSession`/`setHrSession` removed.
-- `frontend/app/login/page.tsx`, `frontend/app/signup/page.tsx` — new
-  pages: centred card, accessible labels, show/hide password, error
-  box, loading state. Signup has a role selector; department +
-  employee ID only for Employee; HR note shown. Both carry the POC
-  note: HR signup is open — restrict it before real clients.
-- `frontend/components/landing/RoleEntry.tsx` — profile-picker modal
-  and `getEmployees` call removed; two cards link to `/login`, plus a
-  link to `/signup`. Visual style unchanged.
-- `frontend/app/page.tsx` — CTA text now says "Sign in to explore…".
-- `frontend/app/employee/layout.tsx`, `frontend/app/hr/layout.tsx` —
-  guards now require a JWT session and redirect to `/login`; HR layout
-  shows the signed-in user's name/email.
-- `frontend/components/layout/AppShell.tsx` — logout calls `logout()`
-  then routes to `/login`.
+- `npx tsc --noEmit`: exit 0
+- `npx next build`: exit 0, all 20 pages generated (`/` 14.3 kB / 127 kB)
+- `python3 -m compileall backend main.py`: exit 0; `backend/` untouched
+- Greps on the 3 changed files: forbidden-word check (the usual list,
+  case-insensitive): **0**; `sk-`: **0**;
+  `fetch(` in PaymentModal: **0**; `#insights` / `#portals` / `#faq`: **0**
+- Smoke test (production server): `/` 200, `/login` 200; served `/` contains
+  "Turn attendance data", "Simple pricing", "PRODUCT FEATURES",
+  "three simple steps", "Subscribe to Pro", "Get started free",
+  "Acme Technologies"; 0 forbidden words; the exact payment note string is
+  present in the built JS chunk
+- Orange appears only on the hero primary CTA (`#F0760A`, hover `#D96508`);
+  the only other "orange" match is a pre-existing CSS comment saying
+  "never orange"
 
-## Example payloads (no real credentials)
+## How to run and check
 
-Signup:
+1. Back up your project, then replace the code with this zip (keep your own
+   `.env`).
+2. `cd frontend && npm install && npm run dev`
+3. Open `http://localhost:3000` and check: navbar (logged out / logged in),
+   hero (count-up numbers, drawing trend line, rotating check-ins), Features,
+   How It Works, Pricing (toggle Monthly/Annual, hover on cards, click
+   "Subscribe to Pro" → payment modal → submit → "Payment integration
+   coming soon" note), footer.
+4. Not checked in a live browser here: count-up, line-draw, ticker, float,
+   modal open/close and the annual toggle were verified by code + successful
+   server render only — please confirm them by clicking through on localhost.
 
-```json
-{"name": "Usman Ali", "email": "usman@example.com", "password": "at-least-8-characters", "role": "employee", "department": "Engineering", "employee_id": "EMP003"}
-```
+## Not done here
 
-Login: `{"email": "usman@example.com", "password": "at-least-8-characters"}`
-Refresh: `{"refresh_token": "<refresh token from login>"}`
-
-## Environment variables required
-
-`DATABASE_URL`, `JWT_SECRET_KEY` (required, empty by default),
-`JWT_ALGORITHM`, `ACCESS_TOKEN_EXPIRE_MINUTES`,
-`REFRESH_TOKEN_EXPIRE_DAYS`. Seed only:
-`AWI_SEED_HR_EMAIL`, `AWI_SEED_HR_PASSWORD`, `AWI_SEED_HR_NAME`.
-
-## Verification (see report for exact results)
-
-- `python3 -m compileall backend main.py` — pass.
-- Frontend `npx tsc --noEmit` — pass (run in a scratch copy; see report).
-- Smoke test against SQLite + httpx — see report; it covers signup,
-  login, wrong-password 401, no-token 401, employee→HR-route 403,
-  refresh rotation (old refresh rejected), and logout revocation.
-- Secret check: searching the tree for key-like prefixes returns 0 lines; no
-  `.env` file exists in the tree.
-
-## NOT done (production follow-ups)
-
-httpOnly Secure SameSite cookies instead of `localStorage`; rate
-limiting on login/signup; email verification and password reset;
-restricting HR signup; per-company (tenant) separation; running the
-Alembic migration in production instead of `create_all`. The
-`X-AWI-Role` string remains only in two docstrings explaining its
-removal.
+- No GitHub push (separate step after your check).
+- No payment integration (UI only, by design).
+- No backend, route, API, auth, or business-logic changes.

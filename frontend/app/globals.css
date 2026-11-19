@@ -319,3 +319,78 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---- Approved landing page (Hero → Features → How It Works → Pricing) -- */
+
+/* Purple-to-blue gradient headline text, used only in the hero. */
+.hero-gradient-text {
+  background: linear-gradient(90deg, #6554e8, #4f7edb);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+/* 3D tilted dashboard panel (desktop only; flat on small screens). */
+.hero-tilt {
+  transform: perspective(1500px) rotateY(-9deg) rotateX(3deg);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+@media (max-width: 600px) {
+  .hero-tilt {
+    transform: none;
+  }
+}
+
+/* Gentle up-down float on the wrapper around the tilted panel,
+   so the tilted panel itself never moves and its text stays sharp. */
+@keyframes hero-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.hero-float {
+  animation: hero-float 6s ease-in-out infinite;
+}
+
+/* Pulsing dot for the LIVE pill and the check-in ticker. */
+@keyframes live-dot-pulse {
+  0% { transform: scale(1); opacity: 0.7; }
+  80%, 100% { transform: scale(2.4); opacity: 0; }
+}
+.live-dot {
+  animation: live-dot-pulse 1.6s ease-out infinite;
+}
+
+/* Ticker row: new name fades/slides in on each rotation. */
+@keyframes ticker-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.ticker-in {
+  animation: ticker-in 0.4s ease-out;
+}
+
+/* Feature + How-it-works cards: lift + soft shadow on hover. */
+.landing-card-hover {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.landing-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(23, 23, 43, 0.1);
+  border-color: var(--color-border-strong);
+}
+
+/* Pricing cards: lift + deeper purple shadow + highlighted border. */
+.pricing-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.pricing-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(101, 84, 232, 0.18);
+  border-color: var(--color-primary);
+}
+.pricing-card--popular:hover {
+  border-color: var(--color-primary);
+}
+
