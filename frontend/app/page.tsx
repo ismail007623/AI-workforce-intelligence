@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   BarChart3,
+  Bell,
   Brain,
   Building2,
   Calendar,
@@ -25,6 +26,7 @@ import {
   ShieldCheck,
   Sparkles,
   TrendingUp,
+  User,
   UserCheck,
   Users,
   X,
@@ -107,9 +109,16 @@ function CountUp({ value, suffix = "" }: { value: number; suffix?: string }) {
 /* and a dot travels along it. Reduced motion shows the final line.  */
 /* ------------------------------------------------------------------ */
 
-const TREND_PATH = "M12,86 L86,64 L160,40 L234,56 L308,26";
+const TREND_PATH = "M46,88 L112,62 L178,42 L244,58 L310,30";
 const TREND_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri"];
-const TREND_X = [12, 86, 160, 234, 308];
+const TREND_X = [46, 112, 178, 244, 310];
+const TREND_Y_LABELS = [
+  { label: "100%", y: 20 },
+  { label: "95%", y: 42 },
+  { label: "90%", y: 64 },
+  { label: "85%", y: 86 },
+  { label: "80%", y: 108 },
+];
 
 function TrendChart() {
   const pathRef = useRef<SVGPathElement>(null);
@@ -143,12 +152,17 @@ function TrendChart() {
   }, []);
 
   return (
-    <svg viewBox="0 0 320 118" className="h-auto w-full" role="img" aria-label="Attendance trend, Monday to Friday">
-      {[22, 52, 82].map((y) => (
-        <line key={y} x1="0" y1={y} x2="320" y2={y} stroke="#E8E9F1" strokeWidth="1" />
+    <svg viewBox="0 0 340 126" className="h-auto w-full" role="img" aria-label="Attendance trend, Monday to Friday">
+      {TREND_Y_LABELS.map(({ label, y }) => (
+        <g key={label}>
+          <line x1="34" y1={y} x2="338" y2={y} stroke="#E8E9F1" strokeWidth="1" />
+          <text x="28" y={y + 3} textAnchor="end" fontSize="9" fill="#8A8FA3">
+            {label}
+          </text>
+        </g>
       ))}
       <path
-        d={`${TREND_PATH} L308,108 L12,108 Z`}
+        d={`${TREND_PATH} L310,108 L46,108 Z`}
         fill="#6554E8"
         fillOpacity="0.06"
         stroke="none"
@@ -166,7 +180,7 @@ function TrendChart() {
       />
       <circle cx={dot.x} cy={dot.y} r="5" fill="#6554E8" stroke="#ffffff" strokeWidth="2" />
       {TREND_LABELS.map((label, i) => (
-        <text key={label} x={TREND_X[i]} y="114" textAnchor="middle" fontSize="10" fill="#8A8FA3">
+        <text key={label} x={TREND_X[i]} y="122" textAnchor="middle" fontSize="10" fill="#8A8FA3">
           {label}
         </text>
       ))}
@@ -176,10 +190,10 @@ function TrendChart() {
 
 /* Live check-in ticker — rotates names every ~3s. */
 const LIVE_CHECKINS = [
-  { name: "Ali Raza", time: "09:02 AM" },
-  { name: "Hira Shahid", time: "09:05 AM" },
-  { name: "Bilal Ahmed", time: "09:11 AM" },
-  { name: "Usman Ali", time: "09:14 AM" },
+  { name: "Usman Ali", dept: "Engineering", ago: "3 min ago", initials: "UA", bg: "#4F7EDB" },
+  { name: "Ali Raza", dept: "Sales", ago: "Just now", initials: "AR", bg: "#15966A" },
+  { name: "Hira Shahid", dept: "Engineering", ago: "1 min ago", initials: "HS", bg: "#6554E8" },
+  { name: "Bilal Ahmed", dept: "Operations", ago: "5 min ago", initials: "BA", bg: "#D58B25" },
 ];
 
 function LiveTicker() {
@@ -191,23 +205,30 @@ function LiveTicker() {
   }, []);
   const current = LIVE_CHECKINS[index];
   return (
-    <div className="flex items-center gap-2 border-t border-[var(--color-border)] px-4 py-3">
-      <span className="relative flex h-2 w-2 shrink-0">
-        <span className="live-dot absolute inline-flex h-full w-full rounded-full bg-[var(--color-success)]" />
-        <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--color-success)]" />
+    <div key={index} className="ticker-in flex items-center gap-3 border-t border-[var(--color-border)] px-4 py-3">
+      <span
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+        style={{ backgroundColor: current.bg }}
+        aria-hidden
+      >
+        {current.initials}
       </span>
-      <p key={index} className="ticker-in truncate text-xs text-[var(--color-text-secondary)]">
-        <strong className="font-semibold text-[var(--color-text-primary)]">{current.name}</strong>
-        {" checked in · "}
-        {current.time}
-      </p>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-bold text-[var(--color-text-primary)]">
+          {current.name} <span className="font-medium text-[var(--color-text-secondary)]">— {current.dept}</span>
+        </span>
+        <span className="mt-0.5 block text-xs text-[var(--color-text-muted)]">Checked in · {current.ago}</span>
+      </span>
+      <span className="shrink-0 rounded-full bg-[var(--color-success-light)] px-2.5 py-1 text-[11px] font-bold text-[var(--color-success)]">
+        On time
+      </span>
     </div>
   );
 }
 
 const SIDEBAR_ITEMS = [
   { label: "Dashboard", icon: LayoutDashboard, active: true },
-  { label: "Attendance", icon: Clock, active: false },
+  { label: "Attendance", icon: Calendar, active: false },
   { label: "Employees", icon: Users, active: false },
   { label: "AI Insights", icon: Sparkles, active: false },
   { label: "Policies", icon: FileText, active: false },
@@ -218,19 +239,44 @@ function HeroDashboard() {
   return (
     <div className="hero-float">
       <div className="hero-tilt overflow-hidden rounded-[20px] border border-[var(--color-border)] bg-white text-left shadow-[0_24px_60px_rgba(23,23,43,0.14)]">
+        {/* Dashboard top bar */}
+        <div className="flex items-center justify-between gap-2 border-b border-[var(--color-border)] px-4 py-3">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--color-primary)] text-white">
+              <Building2 className="h-4 w-4" />
+            </span>
+            <span className="truncate text-sm font-extrabold tracking-tight">
+              <span className="text-[var(--color-text-primary)]">AI</span>{" "}
+              <span className="text-[var(--color-primary)]">Workforce</span>
+            </span>
+            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[var(--color-success-light)] px-2.5 py-1 text-[11px] font-bold text-[var(--color-success)]">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="live-dot absolute inline-flex h-full w-full rounded-full bg-[var(--color-success)]" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--color-success)]" />
+              </span>
+              LIVE
+            </span>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <Bell className="h-4 w-4 text-[var(--color-text-muted)]" aria-hidden />
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-primary)] text-white">
+              <User className="h-4 w-4" />
+            </span>
+            <span className="hidden text-xs font-semibold text-[var(--color-text-primary)] sm:block">HR Admin</span>
+            <ChevronDown className="h-3.5 w-3.5 text-[var(--color-text-muted)]" aria-hidden />
+          </div>
+        </div>
+
         <div className="flex">
           {/* Sidebar */}
-          <div className="hidden w-44 shrink-0 flex-col border-r border-[var(--color-border)] bg-[var(--color-bg-soft)] px-3 py-4 sm:flex">
-            <p className="px-2 text-[11px] font-bold uppercase tracking-wider text-[var(--color-text-primary)]">
-              AI Workforce
-            </p>
-            <nav className="mt-4 space-y-1" aria-label="Dashboard preview">
+          <div className="hidden w-40 shrink-0 flex-col border-r border-[var(--color-border)] px-3 py-4 sm:flex">
+            <nav className="space-y-1" aria-label="Dashboard preview">
               {SIDEBAR_ITEMS.map((item) => (
                 <span
                   key={item.label}
                   className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium ${
                     item.active
-                      ? "bg-[var(--color-primary-xlight)] text-[var(--color-primary)]"
+                      ? "bg-[var(--color-primary)] text-white shadow-[0_4px_12px_rgba(101,84,232,0.35)]"
                       : "text-[var(--color-text-secondary)]"
                   }`}
                 >
@@ -247,59 +293,76 @@ function HeroDashboard() {
 
           {/* Main panel */}
           <div className="min-w-0 flex-1">
-            <div className="flex items-center justify-between gap-2 border-b border-[var(--color-border)] px-4 py-3">
+            <div className="flex items-center justify-between gap-2 px-4 pt-4">
               <p className="truncate text-sm font-bold text-[var(--color-text-primary)]">Workforce Overview</p>
-              <div className="flex shrink-0 items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-success-light)] px-2.5 py-1 text-[11px] font-bold text-[var(--color-success)]">
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="live-dot absolute inline-flex h-full w-full rounded-full bg-[var(--color-success)]" />
-                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--color-success)]" />
-                  </span>
-                  LIVE
-                </span>
-                <span className="hidden text-xs font-medium text-[var(--color-text-muted)] sm:block">HR Admin</span>
-              </div>
+              <button
+                type="button"
+                className="flex shrink-0 items-center gap-1 rounded-full border border-[var(--color-border)] bg-white px-3 py-1.5 text-xs font-medium text-[var(--color-text-secondary)]"
+                aria-label="Change period: This Month"
+              >
+                This Month <ChevronDown className="h-3.5 w-3.5" />
+              </button>
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-2 gap-px border-b border-[var(--color-border)] bg-[var(--color-border)] sm:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 px-4 pt-3 sm:grid-cols-4">
               {[
-                { label: "Total Employees", value: <CountUp value={248} />, delta: null },
-                { label: "On-time Rate", value: <CountUp value={94} suffix="%" />, delta: { text: "↑ +4%", up: true } },
-                { label: "Late Arrivals", value: <CountUp value={16} />, delta: { text: "↓ −37%", up: false } },
-                { label: "Overtime", value: <CountUp value={128} suffix=" h" />, delta: null },
+                { label: "Total Employees", icon: Users, iconClass: "text-[var(--color-primary)]", value: <CountUp value={248} />, delta: null },
+                { label: "On-time Rate", icon: TrendingUp, iconClass: "text-[var(--color-success)]", value: <CountUp value={94} suffix="%" />, delta: { text: "↑ +1%", tone: "up" } },
+                { label: "Late Arrivals", icon: Clock, iconClass: "text-[var(--color-danger)]", value: <CountUp value={16} />, delta: { text: "↓ −37%", tone: "down" } },
+                { label: "Overtime", icon: Clock, iconClass: "text-[var(--color-primary)]", value: <CountUp value={128} suffix=" h" />, delta: null },
               ].map((s) => (
-                <div key={s.label} className="bg-white px-3.5 py-3">
-                  <p className="text-[11px] font-medium text-[var(--color-text-muted)]">{s.label}</p>
-                  <p className="mt-1 text-xl font-bold text-[var(--color-text-primary)]">{s.value}</p>
-                  {s.delta && (
-                    <p className={`mt-0.5 text-[11px] font-semibold ${s.delta.up ? "text-[var(--color-success)]" : "text-[var(--color-success)]"}`}>
-                      {s.delta.text}
-                    </p>
-                  )}
+                <div key={s.label} className="rounded-xl border border-[var(--color-border)] bg-white p-3">
+                  <p className="flex items-center gap-1.5 text-[11px] font-semibold leading-tight text-[var(--color-text-muted)]">
+                    <s.icon className={`h-3.5 w-3.5 shrink-0 ${s.iconClass}`} />
+                    {s.label}
+                  </p>
+                  <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[22px] font-extrabold leading-none text-[var(--color-text-primary)]">
+                    {s.value}
+                    {s.delta && (
+                      <span
+                        className={`rounded-full px-1.5 py-0.5 text-[11px] font-bold ${
+                          s.delta.tone === "up"
+                            ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
+                            : "bg-[var(--color-danger-light)] text-[var(--color-danger)]"
+                        }`}
+                      >
+                        {s.delta.text}
+                      </span>
+                    )}
+                  </p>
                 </div>
               ))}
             </div>
 
-            {/* Trend chart */}
-            <div className="border-b border-[var(--color-border)] px-4 pb-2 pt-3">
-              <div className="flex items-center justify-between">
+            {/* Trend chart + AI insight */}
+            <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row">
+              <div className="relative min-w-0 flex-1 rounded-xl border border-[var(--color-border)] bg-white p-4">
                 <p className="text-xs font-semibold text-[var(--color-text-primary)]">Attendance Trend</p>
-                <p className="text-xs font-bold text-[var(--color-primary)]">
-                  94% <span className="font-medium text-[var(--color-text-muted)]">on-time</span>
-                </p>
+                <div className="relative mt-1">
+                  <TrendChart />
+                  <div className="absolute left-[52%] top-[6%] z-10 rounded-xl border border-[var(--color-border)] bg-white px-3 py-2 text-center shadow-[0_8px_24px_rgba(23,23,43,0.12)]">
+                    <p className="text-sm font-extrabold leading-none text-[var(--color-text-primary)]">
+                      94<span className="text-[11px]">%</span>
+                    </p>
+                    <p className="mt-1 text-[10px] font-medium leading-none text-[var(--color-text-muted)]">On-time rate</p>
+                  </div>
+                </div>
               </div>
-              <TrendChart />
-            </div>
-
-            {/* AI insight */}
-            <div className="mx-4 mb-3 mt-3 flex items-start gap-2.5 rounded-xl bg-[var(--color-primary-xlight)] p-3">
-              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-primary)]" />
-              <p className="text-xs leading-relaxed text-[var(--color-text-secondary)]">
-                <strong className="font-semibold text-[var(--color-text-primary)]">AI Insight:</strong> Late
-                arrivals are 37% lower this month. Recommendation: Maintain the current shift plan
-                for Operations.
-              </p>
+              <div className="w-full shrink-0 rounded-xl bg-[var(--color-primary-xlight)] p-4 sm:w-[220px]">
+                <p className="flex items-center gap-1.5 text-xs font-bold text-[var(--color-primary)]">
+                  <Sparkles className="h-3.5 w-3.5" /> AI Insight
+                </p>
+                <p className="mt-2.5 text-sm font-bold leading-snug text-[var(--color-text-primary)]">
+                  Late arrivals are 37% lower this month.
+                </p>
+                <p className="mt-2 text-xs leading-relaxed text-[var(--color-text-secondary)]">
+                  Recommendation: Maintain the current shift plan for Operations.
+                </p>
+                <div className="mt-3 flex justify-end">
+                  <ArrowRight className="h-4 w-4 text-[var(--color-primary)]" aria-hidden />
+                </div>
+              </div>
             </div>
 
             <LiveTicker />
@@ -353,16 +416,29 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white text-[var(--color-text-primary)]">
-      <div className="top-strip" aria-hidden />
-
-      {/* Navbar */}
-      <header className="sticky top-0 z-30 border-b border-[var(--color-border)] bg-white/95 backdrop-blur">
-        <div className="mx-auto flex h-[76px] max-w-[1280px] items-center justify-between px-4 sm:px-6">
-          <Logo />
-          <nav aria-label="Main" className="hidden items-center gap-1 md:flex">
-            <a href="#features" className="rounded-full px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">Features</a>
-            <a href="#how" className="rounded-full px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">How it works</a>
-            <a href="#plans" className="rounded-full px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">Pricing</a>
+      {/* Navbar — floating white pill */}
+      <header className="fixed inset-x-0 top-3 z-40 px-4 sm:px-6">
+        <div className="mx-auto flex h-[72px] max-w-[1280px] items-center justify-between gap-3 rounded-full border border-[var(--color-border)] bg-white px-4 shadow-[0_10px_36px_rgba(23,23,43,0.12)] sm:px-5">
+          <Link href="/" className="flex shrink-0 items-center gap-3" aria-label="AI Workforce home">
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--color-primary)] text-white shadow-[0_6px_16px_rgba(101,84,232,0.4)]">
+              <Building2 className="h-5 w-5" />
+            </span>
+            <span className="leading-none">
+              <span className="block text-[17px] font-extrabold tracking-tight">
+                <span className="text-[var(--color-text-primary)]">AI</span>{" "}
+                <span className="text-[var(--color-primary)]">Workforce</span>
+              </span>
+              <span className="mt-1 block text-[9px] font-semibold uppercase tracking-[0.22em] text-[var(--color-text-muted)]">
+                Attendance Intelligence
+              </span>
+            </span>
+          </Link>
+          <nav aria-label="Main" className="hidden items-center gap-1 lg:flex">
+            <a href="#features" aria-current="page" className="rounded-full bg-[var(--color-primary-xlight)] px-4 py-2 text-sm font-semibold text-[var(--color-primary)]">Features</a>
+            <a href="#how" className="rounded-full px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text-primary)]">How it works</a>
+            <a href="#plans" className="rounded-full px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text-primary)]">Pricing</a>
+          </nav>
+          <div className="hidden items-center gap-2 md:flex">
             {hydrated && user ? (
               <>
                 <span className="max-w-40 truncate px-2 text-sm font-semibold text-[var(--color-text-primary)]">{user.name}</span>
@@ -377,14 +453,14 @@ export default function LandingPage() {
               </>
             ) : (
               <>
-                <Link href="/login" className="rounded-full border border-[var(--color-border-strong)] bg-white px-4 py-2 text-sm font-semibold text-[var(--color-text-primary)] transition-colors duration-200 hover:border-[var(--color-primary-light)] hover:text-[var(--color-primary)]">Log in</Link>
-                <Link href="/company-signup" className="rounded-full bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[var(--color-primary-dark)]">Get started</Link>
+                <Link href="/login" className="rounded-full border border-[var(--color-border-strong)] bg-white px-5 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] transition-colors duration-200 hover:border-[var(--color-primary-light)] hover:text-[var(--color-primary)]">Log in</Link>
+                <Link href="/company-signup" className="rounded-full bg-[var(--color-primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_6px_16px_rgba(101,84,232,0.35)] transition-colors duration-200 hover:bg-[var(--color-primary-dark)]">Get started</Link>
               </>
             )}
-          </nav>
+          </div>
           <button
             type="button"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-soft)] md:hidden"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-soft)] lg:hidden"
             aria-label={mobileNavOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileNavOpen}
             onClick={() => setMobileNavOpen((v) => !v)}
@@ -393,9 +469,9 @@ export default function LandingPage() {
           </button>
         </div>
         {mobileNavOpen && (
-          <nav aria-label="Mobile" className="border-t border-[var(--color-border)] bg-white px-4 pb-4 pt-2 md:hidden">
+          <nav aria-label="Mobile" className="mx-auto mt-2 max-w-[1280px] rounded-2xl border border-[var(--color-border)] bg-white px-4 py-3 shadow-[0_16px_40px_rgba(23,23,43,0.14)] lg:hidden">
             <div className="flex flex-col gap-1">
-              <a href="#features" onClick={() => setMobileNavOpen(false)} className="rounded-full px-3 py-2.5 text-sm font-medium text-[var(--color-text-secondary)]">Features</a>
+              <a href="#features" onClick={() => setMobileNavOpen(false)} className="rounded-full bg-[var(--color-primary-xlight)] px-3 py-2.5 text-sm font-semibold text-[var(--color-primary)]">Features</a>
               <a href="#how" onClick={() => setMobileNavOpen(false)} className="rounded-full px-3 py-2.5 text-sm font-medium text-[var(--color-text-secondary)]">How it works</a>
               <a href="#plans" onClick={() => setMobileNavOpen(false)} className="rounded-full px-3 py-2.5 text-sm font-medium text-[var(--color-text-secondary)]">Pricing</a>
               {hydrated && user ? (
@@ -415,12 +491,18 @@ export default function LandingPage() {
       </header>
 
       {/* Hero */}
-      <section className="bg-[#F7F5FE]">
-        <div className="mx-auto grid max-w-[1280px] items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:py-[96px] lg:min-h-[82vh]">
+      <section className="relative overflow-hidden bg-[#F7F5FE]">
+        <svg className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 1440 800" fill="none">
+          <path d="M-40 110 C 300 50, 720 190, 1480 70" stroke="#E6E1FB" strokeWidth="1.5" />
+          <path d="M-40 170 C 320 110, 740 250, 1480 130" stroke="#EDE9FD" strokeWidth="1.5" />
+          <path d="M-40 660 C 420 580, 920 730, 1480 610" stroke="#EDE9FD" strokeWidth="1.5" />
+        </svg>
+        <div className="relative mx-auto grid max-w-[1280px] items-center gap-12 px-4 pb-16 pt-32 sm:px-6 lg:min-h-[85vh] lg:grid-cols-2 lg:pb-[96px] lg:pt-[168px]">
           <div>
-            <h1 className="text-5xl font-extrabold leading-[1.05] tracking-tight text-[var(--color-text-primary)] sm:text-[56px]">
-              Turn attendance data into{" "}
-              <span className="hero-gradient-text">workforce intelligence.</span>
+            <h1 className="text-[52px] font-extrabold leading-[1.02] tracking-tight sm:text-[68px] lg:text-[76px]">
+              <span className="block text-[var(--color-text-primary)]">Turn attendance</span>
+              <span className="block text-[var(--color-text-primary)]">data into</span>
+              <span className="hero-gradient-text block">workforce intelligence.</span>
             </h1>
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-[var(--color-text-secondary)]">
               Automate attendance, catch issues early, and turn workforce data into actionable HR insights.
@@ -433,18 +515,23 @@ export default function LandingPage() {
                 <Play className="h-4 w-4 fill-current" /> See how it works
               </a>
             </div>
-            <ul className="mt-8 space-y-2.5">
+            <div className="mt-10 flex flex-wrap items-start gap-x-8 gap-y-4">
               {[
-                { bold: "Save time", rest: "— Automate HR tasks" },
-                { bold: "Spot issues early", rest: "— With AI insights" },
-                { bold: "Keep data private", rest: "— Your data, your company" },
+                { icon: Zap, title: "Save time", desc: "Automate HR tasks" },
+                { icon: BarChart3, title: "Spot issues early", desc: "With AI insights" },
+                { icon: ShieldCheck, title: "Keep data private", desc: "Your data, your company" },
               ].map((b) => (
-                <li key={b.bold} className="flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]">
-                  <CheckCircle2 className="h-4 w-4 shrink-0 text-[var(--color-success)]" />
-                  <span><strong className="font-semibold text-[var(--color-text-primary)]">{b.bold}</strong> {b.rest}</span>
-                </li>
+                <div key={b.title} className="flex items-start gap-3">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[var(--color-border)] bg-white text-[var(--color-primary)] shadow-[0_2px_8px_rgba(23,23,43,0.06)]">
+                    <b.icon className="h-5 w-5" />
+                  </span>
+                  <span>
+                    <span className="block text-sm font-bold text-[var(--color-text-primary)]">{b.title}</span>
+                    <span className="mt-0.5 block text-sm text-[var(--color-text-secondary)]">{b.desc}</span>
+                  </span>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
           <HeroDashboard />
         </div>

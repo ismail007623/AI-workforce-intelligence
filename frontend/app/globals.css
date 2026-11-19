@@ -63,6 +63,12 @@
 
 html {
   scroll-behavior: smooth;
+  /* Fixed floating navbar must never cover a section heading on anchor jumps. */
+  scroll-padding-top: 120px;
+}
+
+section[id] {
+  scroll-margin-top: 120px;
 }
 
 body {
@@ -258,12 +264,6 @@ body {
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--color-text-muted);
-}
-
-/* Thin solid purple strip along the very top of the page. */
-.top-strip {
-  height: 3px;
-  background: var(--color-primary);
 }
 
 /* Giant outlined number for numbered rows. Active = solid purple. */

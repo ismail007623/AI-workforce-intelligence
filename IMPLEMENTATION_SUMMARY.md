@@ -5,6 +5,72 @@ Base: pushed `main` head `82a9e0d4` (verified — local `frontend/app/page.tsx`
 sha256 matched the remote file exactly before building). **Frontend only —
 nothing under `backend/` was changed. Not pushed to GitHub.**
 
+## Hero fix — 2026-11-19 (match the sample exactly)
+
+After the first build, the running hero did not match the approved sample
+(`image-63.png` / `image-64.png`), so the hero — navbar + hero only — was
+rebuilt to match it exactly. Base for this fix: pushed `main` head `58ce94ec`
+(verified before building). **Frontend only, hero only. Features, How It
+Works, Pricing, PaymentModal, footer and the login/signup/company-signup
+pages are untouched. Not pushed to GitHub.**
+
+What was wrong, and what now matches the sample:
+
+- **Navbar:** was a plain flat bar with the small image logo. Now a floating
+  white pill (`fixed`, top 12px, rounded-full, soft shadow) over the lavender
+  hero: purple badge + "AI Workforce" / "ATTENDANCE INTELLIGENCE" on the
+  left, Features (lavender active pill) / How it works / Pricing, white pill
+  "Log in" + solid purple pill "Get started" on the right. Session behaviour
+  unchanged (logged in: name + Dashboard + Log out). The purple top strip is
+  gone. The sample's scrolled screenshot shows the sticky pill overlapping
+  and clipping the headline — that is NOT reproduced: the hero has generous
+  top padding (128px mobile / 168px desktop) so the full headline is visible
+  at load, and `scroll-padding-top: 120px` + `scroll-margin-top: 120px` keep
+  anchor jumps clear of the pill.
+- **Headline:** was 56px on two lines. Now 52px / 68px / 76px, three lines —
+  "Turn attendance" / "data into" / "workforce intelligence." — the last
+  line in the purple→blue gradient. Hero is ~85vh with the same generous
+  spacing, plus faint decorative curved lines on the lavender background.
+- **Dashboard:** was flat and plain. Now a white card with a full-width top
+  bar (small logo + "AI Workforce", green LIVE pill, bell icon, purple
+  avatar + "HR Admin" + chevron), a white sidebar with the Dashboard item as
+  a solid purple pill (Attendance, Employees, AI Insights, Policies,
+  Reports, Settings), "Workforce Overview" with a "This Month" dropdown,
+  four bordered stat cards with icons and coloured delta pills (Total
+  Employees 248; On-time Rate 94% with green ↑ +1% pill — was +4%; Late
+  Arrivals 16 with red ↓ −37% pill — was green; Overtime 128 h), an
+  "Attendance Trend" card with y-axis labels (100%–80%) and a floating
+  "94% On-time rate" callout bubble over the line, and an "AI Insight" card
+  beside it. Kept from the previous build: count-up numbers, the
+  self-drawing trend line with travelling dot, the 3D tilt (static tilt,
+  float on the wrapper), the LIVE pill, and reduced-motion support.
+- **Ticker row:** was a green dot + one line of text. Now the sample's row:
+  coloured avatar with initials, name — department, "Checked in · X min
+  ago", and a green "On time" pill on the right. Still rotates the same four
+  names every ~3s (Usman Ali, Ali Raza, Hira Shahid, Bilal Ahmed).
+- **Benefits:** were a vertical green-check checklist. Now a horizontal row
+  of three items at the bottom of the hero, each with a small icon in a
+  circle: "Save time — Automate HR tasks", "Spot issues early — With AI
+  insights", "Keep data private — Your data, your company".
+- **Buttons unchanged:** orange `#F0760A` "Get started free →" (#plans) and
+  white "See how it works" (#how).
+
+Verification for this fix (fresh scratch copy, deleted after):
+
+- `npx tsc --noEmit`: exit 0
+- `npx next build`: exit 0, all 20 pages generated (`/` 15.4 kB / 128 kB)
+- `python3 -m compileall backend main.py`: exit 0; `backend/` untouched
+- Greps on the 2 changed files (`frontend/app/page.tsx`,
+  `frontend/app/globals.css`): forbidden-word check: **0**; `sk-`: **0**
+- Smoke test (production server): `/` 200 (74,119 bytes), `/login` 200;
+  served `/` contains "Turn attendance", "workforce intelligence",
+  "Workforce Overview", "On-time rate", "This Month", "On time",
+  "Usman Ali", "Attendance Trend", "AI Insight"; 0 forbidden words.
+  Note: one smoke-test run first hit a stale server left running from the
+  earlier implementation task on the same port (it served the old build);
+  it was stopped and the test re-run against the fresh build — the numbers
+  above are from the fresh build.
+
 ## What changed (3 files)
 
 - `frontend/app/page.tsx` — replaced wholesale with the 5-part flow:
@@ -24,21 +90,31 @@ nothing under `backend/` was changed. Not pushed to GitHub.**
 
 ## The page
 
-- **Navbar:** sticky, 76px, white + hairline border. Links: Features,
-  How it works, Pricing. Logged out: Log in + Get started pills. Logged in:
-  name + Dashboard + Log out. Mobile hamburger menu.
-- **Hero:** soft lavender background, ~82vh min-height, 96px vertical padding,
-  1280px container. Headline "Turn attendance data into workforce
-  intelligence." (second sentence in a purple→blue gradient). Subtext:
-  "Automate attendance, catch issues early, and turn workforce data into
-  actionable HR insights." Orange `#F0760A` "Get started free →" (#plans) +
-  white "See how it works" (#how). Three checkmark mini-benefits. Right: 3D
-  tilted dashboard (sidebar, HR Admin top bar, LIVE pulsing pill, count-up
-  stats 248 / 94% ↑+4% / 16 ↓−37% / 128 h, Mon–Fri trend line that draws
-  itself with a travelling dot, 94% callout, AI Insight card with the exact
-  37% text, live check-in ticker rotating Ali Raza / Hira Shahid /
-  Bilal Ahmed / Usman Ali every 3s). No floating toasts, no trusted-by row,
-  no eyebrow pill. Reduced motion shows final values with no animation.
+- **Navbar:** floating white pill (`fixed`, top 12px, rounded-full, soft
+  shadow) over the lavender hero. Purple badge + "AI Workforce" /
+  "ATTENDANCE INTELLIGENCE". Links: Features (lavender active pill),
+  How it works, Pricing. Logged out: white pill Log in + solid purple pill
+  Get started. Logged in: name + Dashboard + Log out. Mobile hamburger
+  menu opens a white rounded card under the pill. Hero top padding
+  (128px / 168px) and 120px scroll offsets keep the headline clear of
+  the pill.
+- **Hero:** soft lavender background with faint decorative curves, ~85vh
+  min-height, 1280px container. Headline 52px / 68px / 76px in three lines
+  ("Turn attendance" / "data into" / "workforce intelligence.", last line
+  in a purple→blue gradient). Subtext: "Automate attendance, catch issues
+  early, and turn workforce data into actionable HR insights." Orange
+  `#F0760A` "Get started free →" (#plans) + white "See how it works"
+  (#how). Three benefits in a horizontal row with circled icons. Right:
+  3D tilted dashboard — full-width top bar (logo, LIVE pulsing pill, bell,
+  purple avatar + HR Admin), white sidebar with solid purple Dashboard
+  item, "Workforce Overview" + "This Month" dropdown, four bordered stat
+  cards with icons and coloured delta pills (248 / 94% ↑+1% green /
+  16 ↓−37% red / 128 h), Mon–Fri trend line that draws itself with a
+  travelling dot, y-axis labels, floating "94% On-time rate" callout,
+  AI Insight card with the exact 37% text, live check-in ticker with
+  avatar + "On time" pill rotating Ali Raza / Hira Shahid / Bilal Ahmed /
+  Usman Ali every 3s. No floating toasts, no trusted-by row, no eyebrow
+  pill. Reduced motion shows final values with no animation.
   NOTE: the dashboard numbers (248, 94%, 16, 128h) and the Features numbers
   (96%, 12, 7, 7h 48m, 32h 15m) are the reference design's showcase numbers,
   implemented exactly as shown — not real product data.
