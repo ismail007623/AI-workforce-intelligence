@@ -498,7 +498,7 @@ export default function LandingPage() {
           <path d="M-40 170 C 320 110, 740 250, 1480 130" stroke="#E3DCFA" strokeWidth="1.5" />
           <path d="M-40 660 C 420 580, 920 730, 1480 610" stroke="#E3DCFA" strokeWidth="1.5" />
         </svg>
-        <div className="relative mx-auto grid max-w-[1280px] items-center gap-12 px-4 pb-16 pt-32 sm:px-6 lg:min-h-[85vh] lg:grid-cols-[0.92fr_1.08fr] lg:pb-[96px] lg:pt-[168px]">
+        <div className="relative mx-auto grid max-w-[1280px] items-start gap-12 px-4 pb-10 pt-32 sm:px-6 lg:min-h-[85vh] lg:grid-cols-[0.92fr_1.08fr] lg:pb-10 lg:pt-[168px]">
           <div>
             <h1 className="text-[52px] font-extrabold leading-[1.02] tracking-tight sm:text-[68px] lg:text-[76px]">
               <span className="block text-[var(--color-text-primary)]">Turn attendance</span>
@@ -516,25 +516,27 @@ export default function LandingPage() {
                 <CirclePlay className="h-5 w-5" /> See how it works
               </a>
             </div>
-            <div className="mt-10 flex flex-wrap items-start gap-x-8 gap-y-4">
-              {[
-                { icon: Zap, title: "Save time", desc: "Automate HR tasks" },
-                { icon: BarChart3, title: "Spot issues early", desc: "With AI insights" },
-                { icon: ShieldCheck, title: "Keep data private", desc: "Your data, your company" },
-              ].map((b) => (
-                <div key={b.title} className="flex items-start gap-3">
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[var(--color-border)] bg-white text-[var(--color-primary)] shadow-[0_2px_8px_rgba(23,23,43,0.06)]">
-                    <b.icon className="h-5 w-5" />
-                  </span>
-                  <span>
-                    <span className="block text-sm font-bold text-[var(--color-text-primary)]">{b.title}</span>
-                    <span className="mt-0.5 block text-sm text-[var(--color-text-secondary)]">{b.desc}</span>
-                  </span>
-                </div>
-              ))}
-            </div>
           </div>
           <HeroDashboard />
+        </div>
+        <div className="relative mx-auto max-w-[1280px] px-4 pb-16 sm:px-6 lg:pb-[96px]">
+          <div className="flex flex-wrap items-start gap-x-8 gap-y-4 lg:flex-nowrap">
+            {[
+              { icon: Zap, title: "Save time", desc: "Automate HR tasks" },
+              { icon: BarChart3, title: "Spot issues early", desc: "With AI insights" },
+              { icon: ShieldCheck, title: "Keep data private", desc: "Your data, your company" },
+            ].map((b) => (
+              <div key={b.title} className="flex items-start gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[var(--color-border)] bg-white text-[var(--color-primary)] shadow-[0_2px_8px_rgba(23,23,43,0.06)]">
+                  <b.icon className="h-5 w-5" />
+                </span>
+                <span>
+                  <span className="block text-sm font-bold text-[var(--color-text-primary)]">{b.title}</span>
+                  <span className="mt-0.5 block text-sm text-[var(--color-text-secondary)]">{b.desc}</span>
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

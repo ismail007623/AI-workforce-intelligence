@@ -240,3 +240,20 @@ found by pixel comparison of his screenshots and fixed in
 
 Verified the same way as above (tsc + build + smoke test); the smooth
 curve path and the wider grid class are present in the served page.
+
+## Benefits row — one line — 2026-11-19
+
+Ismail asked whether the three hero benefits (Save time / Spot issues
+early / Keep data private) are aligned in one line. They were not: the
+row sat inside the narrow text column and was allowed to wrap, so
+"Keep data private" dropped to a second line at his window size. Fixed
+in `frontend/app/page.tsx`: the benefits are now a full-width row at
+the bottom of the hero section (`lg:flex-nowrap`, same icons and text),
+so all three stay on one line at every desktop width. The hero grid is
+now top-aligned (`items-start`) so the headline keeps its position
+now that the left column is shorter.
+
+Verified: `tsc --noEmit` exit 0, `next build` exit 0 (all 20 pages),
+production smoke test `/` 200 + `/login` 200, served `/` contains all
+three benefits and `lg:flex-nowrap`, and the benefits markup comes
+after the dashboard markup in the page (the strip sits below the grid).
