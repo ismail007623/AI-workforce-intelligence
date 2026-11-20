@@ -322,45 +322,84 @@ body {
 
 /* ---- Approved landing page (Hero → Features → How It Works → Pricing) -- */
 
-/* Purple-to-blue gradient headline text, used only in the hero. */
+/* Vibrant purple gradient headline — matches reference (less blue). */
 .hero-gradient-text {
-  background: linear-gradient(90deg, #6554e8, #4f7edb);
+  background: linear-gradient(90deg, #6554e8 0%, #7c3aed 55%, #6366f1 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
 }
 
-/* Hero background — soft lavender gradient, light at the left and
-   deepening to the right, deepest at the bottom-right corner,
-   matching the sample (sampled: #F3F0FF left, #F6F3FE top-centre,
-   #E1D5FE top-right, #D9D2F5 bottom-right). */
+/* Hero background — soft lavender wash: near-white left, purple mist right. */
 .hero-bg {
+  position: relative;
   background:
-    radial-gradient(55% 45% at 92% 88%, rgba(217, 210, 245, 0.55), rgba(217, 210, 245, 0) 70%),
-    linear-gradient(115deg, #f3f0ff 0%, #f6f3fe 28%, #ece8fd 52%, #e1d5fe 78%, #d9d2f5 100%);
+    radial-gradient(60% 50% at 85% 18%, rgba(225, 213, 254, 0.75), transparent 65%),
+    radial-gradient(50% 45% at 92% 88%, rgba(217, 210, 245, 0.55), transparent 70%),
+    radial-gradient(40% 35% at 10% 80%, rgba(252, 251, 255, 0.95), transparent 60%),
+    linear-gradient(120deg, #fcfbff 0%, #f6f3ff 36%, #ebe4ff 72%, #e0d6fc 100%);
 }
 
-/* 3D tilted dashboard panel (desktop only; flat on small screens). */
+/* Soft fade into the white Features section below. */
+.hero-bg::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 96px;
+  background: linear-gradient(to bottom, transparent, #ffffff);
+  z-index: 1;
+}
+
+/* Soft decorative wave strokes behind the hero. */
+.hero-waves path {
+  stroke: #c9bef5;
+  stroke-opacity: 0.25;
+  fill: none;
+  stroke-linecap: round;
+}
+@keyframes hero-wave-drift {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-18px); }
+}
+.hero-waves {
+  animation: hero-wave-drift 18s ease-in-out infinite;
+}
+
+/* Soft 3D tilt — closer to reference (less extreme skew). */
 .hero-tilt {
-  transform: perspective(1500px) rotateY(-9deg) rotateX(3deg);
+  transform: perspective(1600px) rotateY(-6deg) rotateX(2deg);
   transform-style: preserve-3d;
   will-change: transform;
+  box-shadow:
+    0 24px 48px rgba(101, 84, 232, 0.14),
+    0 8px 20px rgba(23, 23, 43, 0.07),
+    0 1px 0 rgba(23, 23, 43, 0.04);
 }
 @media (max-width: 600px) {
   .hero-tilt {
     transform: none;
+    box-shadow:
+      0 14px 32px rgba(101, 84, 232, 0.11),
+      0 4px 12px rgba(23, 23, 43, 0.06);
   }
 }
 
-/* Gentle up-down float on the wrapper around the tilted panel,
-   so the tilted panel itself never moves and its text stays sharp. */
+/* Entrance then continuous gentle float on the dashboard card. */
+@keyframes hero-card-in {
+  from { opacity: 0; transform: translateY(28px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
 @keyframes hero-float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+  50% { transform: translateY(-12px); }
 }
 .hero-float {
-  animation: hero-float 6s ease-in-out infinite;
+  animation:
+    hero-card-in 0.85s cubic-bezier(0.22, 1, 0.36, 1) both,
+    hero-float 5.5s ease-in-out 0.85s infinite;
 }
 
 /* Pulsing dot for the LIVE pill and the check-in ticker. */

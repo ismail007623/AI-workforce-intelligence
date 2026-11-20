@@ -156,7 +156,7 @@ function TrendChart() {
       {TREND_Y_LABELS.map(({ label, y }) => (
         <g key={label}>
           <line x1="34" y1={y} x2="338" y2={y} stroke="#E8E9F1" strokeWidth="1" />
-          <text x="28" y={y + 3} textAnchor="end" fontSize="9" fill="#8A8FA3">
+          <text x="28" y={y + 3} textAnchor="end" fontSize="10" fill="#5A5F73">
             {label}
           </text>
         </g>
@@ -182,7 +182,7 @@ function TrendChart() {
       <circle cx="244" cy="55" r="4.5" fill="#6554E8" stroke="#ffffff" strokeWidth="2" />
       <circle cx={dot.x} cy={dot.y} r="5" fill="#6554E8" stroke="#ffffff" strokeWidth="2" />
       {TREND_LABELS.map((label, i) => (
-        <text key={label} x={TREND_X[i]} y="122" textAnchor="middle" fontSize="10" fill="#8A8FA3">
+        <text key={label} x={TREND_X[i]} y="122" textAnchor="middle" fontSize="11" fill="#5A5F73">
           {label}
         </text>
       ))}
@@ -219,7 +219,7 @@ function LiveTicker() {
         <span className="block truncate text-sm font-bold text-[var(--color-text-primary)]">
           {current.name} <span className="font-medium text-[var(--color-text-secondary)]">— {current.dept}</span>
         </span>
-        <span className="mt-0.5 block text-xs text-[var(--color-text-muted)]">Checked in · {current.ago}</span>
+        <span className="mt-0.5 block text-xs text-[var(--color-text-secondary)]">Checked in · {current.ago}</span>
       </span>
       <span className="shrink-0 rounded-full bg-[var(--color-success-light)] px-2.5 py-1 text-[11px] font-bold text-[var(--color-success)]">
         On time
@@ -240,7 +240,7 @@ const SIDEBAR_ITEMS = [
 function HeroDashboard() {
   return (
     <div className="hero-float">
-      <div className="hero-tilt overflow-hidden rounded-[20px] border border-[var(--color-border)] bg-white text-left shadow-[0_24px_60px_rgba(23,23,43,0.14)]">
+      <div className="hero-tilt overflow-hidden rounded-[20px] border border-[var(--color-border)] bg-white text-left">
         {/* Dashboard top bar */}
         <div className="flex items-center justify-between gap-2 border-b border-[var(--color-border)] px-4 py-3">
           <div className="flex min-w-0 items-center gap-2">
@@ -276,10 +276,10 @@ function HeroDashboard() {
               {SIDEBAR_ITEMS.map((item) => (
                 <span
                   key={item.label}
-                  className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium ${
+                  className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] ${
                     item.active
-                      ? "bg-[var(--color-primary)] text-white shadow-[0_4px_12px_rgba(101,84,232,0.35)]"
-                      : "text-[var(--color-text-secondary)]"
+                      ? "bg-[var(--color-primary)] font-semibold text-white shadow-[0_4px_12px_rgba(101,84,232,0.35)]"
+                      : "font-semibold text-[#5c6178]"
                   }`}
                 >
                   <item.icon className="h-4 w-4 shrink-0" />
@@ -287,7 +287,7 @@ function HeroDashboard() {
                 </span>
               ))}
             </nav>
-            <span className="mt-auto flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium text-[var(--color-text-secondary)]">
+            <span className="mt-auto flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-[#5c6178]">
               <Settings className="h-4 w-4 shrink-0" />
               Settings
             </span>
@@ -315,7 +315,7 @@ function HeroDashboard() {
                 { label: "Overtime", icon: Clock, iconClass: "text-[var(--color-primary)]", value: <CountUp value={128} suffix=" h" />, delta: null },
               ].map((s) => (
                 <div key={s.label} className="rounded-xl border border-[var(--color-border)] bg-white px-2.5 py-3">
-                  <p className="flex items-center gap-1.5 text-[11px] font-semibold leading-tight text-[var(--color-text-muted)]">
+                  <p className="flex items-center gap-1.5 text-[11px] font-semibold leading-tight text-[var(--color-text-secondary)]">
                     <s.icon className={`h-3.5 w-3.5 shrink-0 ${s.iconClass}`} />
                     {s.label}
                   </p>
@@ -343,10 +343,10 @@ function HeroDashboard() {
                 <p className="text-xs font-semibold text-[var(--color-text-primary)]">Attendance Trend</p>
                 <div className="relative mt-1">
                   <TrendChart />
-                  <div className="absolute left-[55%] top-[2%] z-10 -translate-x-1/2 whitespace-nowrap rounded-xl border border-[var(--color-border)] bg-white px-3 py-2 text-center shadow-[0_8px_24px_rgba(23,23,43,0.12)]">
+                  <div className="absolute right-1 top-0 z-10 whitespace-nowrap rounded-lg border border-[var(--color-border)] bg-white px-2 py-1.5 text-center shadow-[0_6px_16px_rgba(23,23,43,0.1)]">
                     <p className="text-sm font-extrabold leading-none text-[var(--color-text-primary)]">94</p>
                     <p className="text-[11px] font-bold leading-none text-[var(--color-text-primary)]">%</p>
-                    <p className="mt-1 text-[10px] font-medium leading-none text-[var(--color-text-muted)]">On-time rate</p>
+                    <p className="mt-1 text-[10px] font-medium leading-none text-[var(--color-text-secondary)]">On-time rate</p>
                   </div>
                 </div>
               </div>
@@ -396,6 +396,22 @@ function SectionPill({ children }: { children: React.ReactNode }) {
 
 type PlanChoice = { plan: string; price: string } | null;
 
+const NAV_SECTIONS = [
+  { id: "features" as const, label: "Features", href: "#features" },
+  { id: "how" as const, label: "How it works", href: "#how" },
+  { id: "plans" as const, label: "Pricing", href: "#plans" },
+];
+
+type NavSectionId = (typeof NAV_SECTIONS)[number]["id"];
+
+function navLinkClass(active: boolean, mobile = false) {
+  const pad = mobile ? "px-3 py-2.5" : "px-4 py-2";
+  if (active) {
+    return `rounded-full bg-[var(--color-primary-xlight)] ${pad} text-sm font-semibold text-[var(--color-primary)]`;
+  }
+  return `rounded-full ${pad} text-sm font-medium text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text-primary)]`;
+}
+
 /* ------------------------------------------------------------------ */
 /* Landing page                                                       */
 /* ------------------------------------------------------------------ */
@@ -406,7 +422,52 @@ export default function LandingPage() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
   const [payPlan, setPayPlan] = useState<PlanChoice>(null);
+  const [activeSection, setActiveSection] = useState<NavSectionId | null>(null);
   const dashboardHref = user?.role === "hr" || user?.role === "admin" ? "/hr" : "/employee";
+
+  useEffect(() => {
+    const ids = NAV_SECTIONS.map((s) => s.id);
+    const elements = ids
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => el != null);
+    if (elements.length === 0) return;
+
+    const visible = new Map<string, number>();
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            visible.set(entry.target.id, entry.intersectionRatio);
+          } else {
+            visible.delete(entry.target.id);
+          }
+        });
+        // Prefer the section closest to the top of the viewport among visible ones
+        let best: NavSectionId | null = null;
+        let bestTop = Number.POSITIVE_INFINITY;
+        for (const id of ids) {
+          if (!visible.has(id)) continue;
+          const el = document.getElementById(id);
+          if (!el) continue;
+          const top = Math.abs(el.getBoundingClientRect().top - 120);
+          if (top < bestTop) {
+            bestTop = top;
+            best = id;
+          }
+        }
+        setActiveSection(best);
+      },
+      {
+        // Offset for fixed floating navbar (~84px) + comfortable lead
+        rootMargin: "-100px 0px -45% 0px",
+        threshold: [0, 0.15, 0.35, 0.55],
+      },
+    );
+
+    elements.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -435,9 +496,19 @@ export default function LandingPage() {
             </span>
           </Link>
           <nav aria-label="Main" className="hidden items-center gap-1 lg:flex">
-            <a href="#features" aria-current="page" className="rounded-full bg-[var(--color-primary-xlight)] px-4 py-2 text-sm font-semibold text-[var(--color-primary)]">Features</a>
-            <a href="#how" className="rounded-full px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text-primary)]">How it works</a>
-            <a href="#plans" className="rounded-full px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text-primary)]">Pricing</a>
+            {NAV_SECTIONS.map((item) => {
+              const active = activeSection === item.id;
+              return (
+                <a
+                  key={item.id}
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  className={navLinkClass(active)}
+                >
+                  {item.label}
+                </a>
+              );
+            })}
           </nav>
           <div className="hidden items-center gap-2 md:flex">
             {hydrated && user ? (
@@ -472,9 +543,20 @@ export default function LandingPage() {
         {mobileNavOpen && (
           <nav aria-label="Mobile" className="mx-auto mt-2 max-w-[1280px] rounded-2xl border border-[var(--color-border)] bg-white px-4 py-3 shadow-[0_16px_40px_rgba(23,23,43,0.14)] lg:hidden">
             <div className="flex flex-col gap-1">
-              <a href="#features" onClick={() => setMobileNavOpen(false)} className="rounded-full bg-[var(--color-primary-xlight)] px-3 py-2.5 text-sm font-semibold text-[var(--color-primary)]">Features</a>
-              <a href="#how" onClick={() => setMobileNavOpen(false)} className="rounded-full px-3 py-2.5 text-sm font-medium text-[var(--color-text-secondary)]">How it works</a>
-              <a href="#plans" onClick={() => setMobileNavOpen(false)} className="rounded-full px-3 py-2.5 text-sm font-medium text-[var(--color-text-secondary)]">Pricing</a>
+              {NAV_SECTIONS.map((item) => {
+                const active = activeSection === item.id;
+                return (
+                  <a
+                    key={item.id}
+                    href={item.href}
+                    onClick={() => setMobileNavOpen(false)}
+                    aria-current={active ? "page" : undefined}
+                    className={navLinkClass(active, true)}
+                  >
+                    {item.label}
+                  </a>
+                );
+              })}
               {hydrated && user ? (
                 <>
                   <Link href={dashboardHref} onClick={() => setMobileNavOpen(false)} className="rounded-full px-3 py-2.5 text-sm font-semibold text-[var(--color-text-primary)]">Dashboard</Link>
@@ -493,50 +575,39 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="hero-bg relative overflow-hidden">
-        <svg className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 1440 800" fill="none">
-          <path d="M-40 110 C 300 50, 720 190, 1480 70" stroke="#DCD4F7" strokeWidth="1.5" />
-          <path d="M-40 170 C 320 110, 740 250, 1480 130" stroke="#E3DCFA" strokeWidth="1.5" />
-          <path d="M-40 660 C 420 580, 920 730, 1480 610" stroke="#E3DCFA" strokeWidth="1.5" />
+        <svg
+          className="hero-waves pointer-events-none absolute inset-0 h-full w-full"
+          aria-hidden="true"
+          preserveAspectRatio="none"
+          viewBox="0 0 1440 800"
+        >
+          <path d="M-80 150 C 260 80, 540 210, 860 130 C 1100 70, 1280 160, 1520 115" strokeWidth="1.25" />
+          <path d="M-80 220 C 300 150, 580 280, 900 200 C 1140 140, 1320 230, 1520 185" strokeWidth="1.1" />
+          <path d="M-80 620 C 320 540, 640 700, 960 600 C 1180 540, 1340 660, 1520 590" strokeWidth="1.25" />
         </svg>
-        <div className="relative mx-auto grid max-w-[1280px] items-start gap-12 px-4 pb-10 pt-32 sm:px-6 lg:min-h-[85vh] lg:grid-cols-[0.92fr_1.08fr] lg:pb-10 lg:pt-[168px]">
+        <div className="relative z-[2] mx-auto grid max-w-[1280px] items-start gap-12 px-4 pb-16 pt-32 sm:px-6 lg:min-h-[85vh] lg:grid-cols-[0.92fr_1.08fr] lg:items-center lg:pb-24 lg:pt-[168px]">
           <div>
-            <h1 className="text-[52px] font-extrabold leading-[1.02] tracking-tight sm:text-[68px] lg:text-[76px]">
-              <span className="block text-[var(--color-text-primary)]">Turn attendance</span>
-              <span className="block text-[var(--color-text-primary)]">data into</span>
-              <span className="hero-gradient-text block">workforce intelligence.</span>
+            <h1 className="text-[44px] font-extrabold leading-[1.05] tracking-tight text-[#0f172a] sm:text-[60px] lg:text-[72px]">
+              <span className="block whitespace-nowrap">From check-in</span>
+              <span className="block whitespace-nowrap">to workforce</span>
+              <span className="hero-gradient-text block whitespace-nowrap">intelligence.</span>
             </h1>
-            <p className="mt-5 max-w-xl text-lg leading-relaxed text-[var(--color-text-secondary)]">
-              Automate attendance, catch issues early, and turn workforce data into actionable HR insights.
+            <p className="mt-5 max-w-xl text-lg leading-relaxed text-[#64748b]">
+              Track attendance effortlessly, detect issues early, and make smarter workforce decisions with AI-powered insights.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <a href="#plans" className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#F0760A] px-6 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[#D96508]">
+              <a href="#plans" className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[var(--color-primary)] px-6 text-sm font-semibold text-white shadow-[0_6px_16px_rgba(101,84,232,0.35)] transition-colors duration-200 hover:bg-[var(--color-primary-dark)]">
                 Get started free <ArrowRight className="h-4 w-4" />
               </a>
               <a href="#how" className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[var(--color-border-strong)] bg-white px-6 text-sm font-semibold text-[var(--color-text-primary)] transition-colors duration-200 hover:border-[var(--color-primary-light)] hover:text-[var(--color-primary)]">
                 <CirclePlay className="h-5 w-5" /> See how it works
               </a>
             </div>
+            <p className="mt-3 text-xs text-[var(--color-text-secondary)]">
+              No credit card required · Setup in minutes
+            </p>
           </div>
           <HeroDashboard />
-        </div>
-        <div className="relative mx-auto max-w-[1280px] px-4 pb-16 sm:px-6 lg:pb-[96px]">
-          <div className="flex flex-wrap items-start gap-x-8 gap-y-4 lg:flex-nowrap">
-            {[
-              { icon: Zap, title: "Save time", desc: "Automate HR tasks" },
-              { icon: BarChart3, title: "Spot issues early", desc: "With AI insights" },
-              { icon: ShieldCheck, title: "Keep data private", desc: "Your data, your company" },
-            ].map((b) => (
-              <div key={b.title} className="flex items-start gap-3">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[var(--color-border)] bg-white text-[var(--color-primary)] shadow-[0_2px_8px_rgba(23,23,43,0.06)]">
-                  <b.icon className="h-5 w-5" />
-                </span>
-                <span>
-                  <span className="block text-sm font-bold text-[var(--color-text-primary)]">{b.title}</span>
-                  <span className="mt-0.5 block text-sm text-[var(--color-text-secondary)]">{b.desc}</span>
-                </span>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
